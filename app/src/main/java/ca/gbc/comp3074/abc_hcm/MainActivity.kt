@@ -117,3 +117,53 @@ fun LoginScreen(nav: NavController) {
         Button(onClick = { nav.navigate("employee") }) { Text("Employee") }
     }
 }
+<<<<<<< HEAD
+=======
+
+@Composable
+fun EmployeeDashboard(nav: NavController) {
+    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+        Text("Employee Dashboard", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = { nav.navigate("employee/mySchedule") }, modifier = Modifier.fillMaxWidth()) {
+            Text("My Schedule")
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Button(onClick = { nav.navigate("employee/requestForm") }, modifier = Modifier.fillMaxWidth()) {
+            Text("Request (Time Off / Shift / Reimbursement)")
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Button(onClick = { nav.navigate("employee/paySummary") }, modifier = Modifier.fillMaxWidth()) {
+            Text("My Pay Summary")
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Button(onClick = { nav.navigate("about") }, modifier = Modifier.fillMaxWidth()) {
+            Text("About")
+        }
+    }
+}
+
+@Composable
+fun RequestFormScreen(nav: NavController) {
+    var type by remember { mutableStateOf("") }
+    var date by remember { mutableStateOf("") }
+    var reason by remember { mutableStateOf("") }
+
+    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+        Text("Submit Request", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.height(12.dp))
+        OutlinedTextField(value = type, onValueChange = { type = it }, label = { Text("Type") }, modifier = Modifier.fillMaxWidth())
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(value = date, onValueChange = { date = it }, label = { Text("Date") }, modifier = Modifier.fillMaxWidth())
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(
+            value = reason, onValueChange = { reason = it },
+            label = { Text("Reason / Notes") }, modifier = Modifier.fillMaxWidth(), maxLines = 3
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = { nav.popBackStack() }, modifier = Modifier.fillMaxWidth()) {
+            Text("Submit (dummy)")
+        }
+    }
+}
+>>>>>>> c2b3b1f (Edit employye Dash board and request form screen)
