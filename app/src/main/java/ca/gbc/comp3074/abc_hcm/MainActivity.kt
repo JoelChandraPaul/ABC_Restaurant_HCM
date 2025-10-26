@@ -1,23 +1,37 @@
 package ca.gbc.comp3074.abc_hcm
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import ca.gbc.comp3074.abc_hcm.data.Request
+import ca.gbc.comp3074.abc_hcm.viewmodel.RequestViewModel
 import kotlinx.coroutines.delay
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material3.HorizontalDivider
+import ca.gbc.comp3074.abc_hcm.ui.theme.HCMTheme
 
+
+@OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,7 +43,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun App() {
-    MaterialTheme {
+    HCMTheme {
         val nav = rememberNavController()
         AppNavGraph(nav)
     }
@@ -38,7 +52,6 @@ fun App() {
 @Composable
 fun AppNavGraph(nav: NavHostController) {
     NavHost(navController = nav, startDestination = "splash") {
-
         composable("splash") { SplashScreen(nav) }
         composable("login") { LoginScreen(nav) }
 
@@ -53,15 +66,15 @@ fun AppNavGraph(nav: NavHostController) {
         composable("employee/mySchedule") { MyScheduleScreen(nav) }
         composable("employee/requestForm") { RequestFormScreen(nav) }
         composable("employee/paySummary") { EmployeePaySummaryScreen(nav) }
+        composable("employee/myRequests") { MyRequestsScreen(nav) }
 
         // Common
         composable("about") { AboutScreen(nav) }
     }
 }
 
-/* ------------ Screens ------------ */
+/* ------------ Splash ------------ */
 
-// Splash
 @Composable
 fun SplashScreen(nav: NavController) {
     LaunchedEffect(Unit) {
@@ -73,7 +86,8 @@ fun SplashScreen(nav: NavController) {
     }
 }
 
-// Login (role select)
+/* ------------ Login ------------ */
+
 @Composable
 fun LoginScreen(nav: NavController) {
     Column(
@@ -130,7 +144,7 @@ fun ManageScheduleScreen(nav: NavController) {
         Spacer(Modifier.height(12.dp))
         week.forEach {
             Text("${it.day}: ${it.employee}  ${it.time}", fontSize = 18.sp)
-            Divider()
+            HorizontalDivider()
         }
         Spacer(Modifier.height(16.dp))
         Button(onClick = { nav.popBackStack() }, modifier = Modifier.fillMaxWidth()) { Text("Back") }
@@ -158,38 +172,122 @@ fun PayrollSummaryScreen(nav: NavController) {
                 Text("Rate: $${"%.2f".format(e.rate)}")
                 Text("Total Pay: $${"%.2f".format(total)}")
             }
-            Divider()
+            HorizontalDivider()
         }
         Spacer(Modifier.height(16.dp))
         Button(onClick = { nav.popBackStack() }, modifier = Modifier.fillMaxWidth()) { Text("Back") }
     }
 }
 
-data class RequestItem(val employee: String, val type: String, val date: String, val reason: String)
+/* ------------ ViewRequests (Improved) ------------ */
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ViewRequestsScreen(nav: NavController) {
-    val requests = listOf(
-        RequestItem("John", "Time Off", "Nov 5, 2025", "Family event"),
-        RequestItem("Amy", "Shift Change", "Nov 8, 2025", "Doctor appointment"),
-        RequestItem("Charles", "Reimbursement", "Nov 10, 2025", "Kitchen supplies")
-    )
-    Column(Modifier.fillMaxSize().padding(16.dp)) {
-        Text("Employee Requests", fontSize = 24.sp, fontWeight = FontWeight.Bold)
-        Spacer(Modifier.height(12.dp))
-        requests.forEach { r ->
-            Column(Modifier.padding(vertical = 6.dp)) {
-                Text("${r.employee}", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                Text("Type: ${r.type}")
-                Text("Date: ${r.date}")
-                Text("Reason: ${r.reason}")
+    val viewModel: RequestViewModel = viewModel()
+    val requests by viewModel.requests.observeAsState(emptyList())
+    val context = LocalContext.current
+
+    Scaffold(topBar = { TopAppBar(title = { Text("Employee Requests") }) }) { padding ->
+        Column(
+            Modifier
+                .padding(padding)
+                .padding(16.dp)
+                .fillMaxSize()
+        ) {
+            if (requests.isEmpty()) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("No requests available", fontSize = 18.sp)
+                }
+            } else {
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    items(requests) { r ->
+                        val statusColor = when (r.status) {
+                            "Approved" -> MaterialTheme.colorScheme.primary
+                            "Rejected" -> MaterialTheme.colorScheme.error
+                            else -> MaterialTheme.colorScheme.tertiary
+                        }
+
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            elevation = CardDefaults.cardElevation(6.dp),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Column(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp)
+                            ) {
+                                Text(
+                                    text = r.employee,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 20.sp
+                                )
+                                Spacer(Modifier.height(4.dp))
+                                Text("Type: ${r.type}")
+                                Text("Date: ${r.date}")
+                                Text("Reason: ${r.reason}")
+                                Spacer(Modifier.height(6.dp))
+                                Surface(
+                                    color = statusColor.copy(alpha = 0.15f),
+                                    shape = RoundedCornerShape(8.dp)
+                                ) {
+                                    Text(
+                                        text = "Status: ${r.status}",
+                                        color = statusColor,
+                                        fontWeight = FontWeight.Bold,
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                    )
+                                }
+
+                                Spacer(Modifier.height(12.dp))
+                                Row(
+                                    Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceEvenly
+                                ) {
+                                    Button(
+                                        onClick = {
+                                            viewModel.updateStatus(r.id, "Approved")
+                                            Toast.makeText(context, "Approved!", Toast.LENGTH_SHORT).show()
+                                        },
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = MaterialTheme.colorScheme.primary
+                                        ),
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text("Approve")
+                                    }
+
+                                    Spacer(Modifier.width(12.dp))
+
+                                    Button(
+                                        onClick = {
+                                            viewModel.updateStatus(r.id, "Rejected")
+                                            Toast.makeText(context, "Rejected!", Toast.LENGTH_SHORT).show()
+                                        },
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = MaterialTheme.colorScheme.error
+                                        ),
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text("Reject")
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
-            Divider()
+
+            Spacer(Modifier.height(16.dp))
+            Button(
+                onClick = { nav.popBackStack() },
+                modifier = Modifier.fillMaxWidth()
+            ) { Text("Back") }
         }
-        Spacer(Modifier.height(16.dp))
-        Button(onClick = { nav.popBackStack() }, modifier = Modifier.fillMaxWidth()) { Text("Back") }
     }
 }
+
 
 /* ------------ Employee ------------ */
 
@@ -203,7 +301,11 @@ fun EmployeeDashboard(nav: NavController) {
         }
         Spacer(Modifier.height(8.dp))
         Button(onClick = { nav.navigate("employee/requestForm") }, modifier = Modifier.fillMaxWidth()) {
-            Text("Request (Time Off / Shift / Reimbursement)")
+            Text("Submit Request")
+        }
+        Spacer(Modifier.height(8.dp))
+        Button(onClick = { nav.navigate("employee/myRequests") }, modifier = Modifier.fillMaxWidth()) {
+            Text("My Requests")
         }
         Spacer(Modifier.height(8.dp))
         Button(onClick = { nav.navigate("employee/paySummary") }, modifier = Modifier.fillMaxWidth()) {
@@ -216,9 +318,56 @@ fun EmployeeDashboard(nav: NavController) {
     }
 }
 
+/* ------------ My Requests (New) ------------ */
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MyRequestsScreen(nav: NavController) {
+    val viewModel: RequestViewModel = viewModel()
+    val requests by viewModel.requests.observeAsState(emptyList())
+    val myRequests = requests.filter { it.employee == "Joel" }
+
+    Scaffold(topBar = { TopAppBar(title = { Text("My Requests") }) }) { padding ->
+        Column(
+            Modifier.padding(padding).padding(16.dp).fillMaxSize()
+        ) {
+            if (myRequests.isEmpty()) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("You haven’t submitted any requests yet", fontSize = 18.sp)
+                }
+            } else {
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    items(myRequests) { r ->
+                        val bgColor = when (r.status) {
+                            "Approved" -> MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                            "Rejected" -> MaterialTheme.colorScheme.error.copy(alpha = 0.1f)
+                            else -> MaterialTheme.colorScheme.surfaceVariant
+                        }
+
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(containerColor = bgColor),
+                            shape = RoundedCornerShape(16.dp),
+                            elevation = CardDefaults.cardElevation(4.dp)
+                        ) {
+                            Column(Modifier.padding(16.dp)) {
+                                Text("Type: ${r.type}", fontWeight = FontWeight.Bold)
+                                Text("Date: ${r.date}")
+                                Text("Reason: ${r.reason}")
+                                Text("Status: ${r.status}", fontWeight = FontWeight.SemiBold)
+                            }
+                        }
+                    }
+                }
+            }
+            Spacer(Modifier.height(16.dp))
+            Button(onClick = { nav.popBackStack() }, modifier = Modifier.fillMaxWidth()) { Text("Back") }
+        }
+    }
+}
+
 @Composable
 fun MyScheduleScreen(nav: NavController) {
-    // Simple “calendar-like” week list (dummy)
     val myWeek = listOf(
         Shift("Mon", "Me", "9–5"),
         Shift("Tue", "Me", "OFF"),
@@ -226,39 +375,108 @@ fun MyScheduleScreen(nav: NavController) {
         Shift("Thu", "Me", "11–7"),
         Shift("Fri", "Me", "10–6")
     )
+
     Column(Modifier.fillMaxSize().padding(16.dp)) {
         Text("My Schedule", fontSize = 24.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(12.dp))
         myWeek.forEach {
             Text("${it.day}: ${it.time}", fontSize = 18.sp)
-            Divider()
+            HorizontalDivider()
         }
         Spacer(Modifier.height(16.dp))
-        Button(onClick = { nav.popBackStack() }, modifier = Modifier.fillMaxWidth()) { Text("Back") }
+        Button(onClick = { nav.popBackStack() }, modifier = Modifier.fillMaxWidth()) {
+            Text("Back")
+        }
     }
 }
 
+
+/* ------------ RequestForm (Room Connected) ------------ */
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RequestFormScreen(nav: NavController) {
-    var type by remember { mutableStateOf("") }      // Time Off / Shift Change / Reimbursement
+    val viewModel: RequestViewModel = viewModel()
+    var type by remember { mutableStateOf("") }
     var date by remember { mutableStateOf("") }
     var reason by remember { mutableStateOf("") }
+    val context = LocalContext.current
 
-    Column(Modifier.fillMaxSize().padding(16.dp)) {
-        Text("Submit Request", fontSize = 24.sp, fontWeight = FontWeight.Bold)
-        Spacer(Modifier.height(12.dp))
-        OutlinedTextField(value = type, onValueChange = { type = it }, label = { Text("Type") }, modifier = Modifier.fillMaxWidth())
-        Spacer(Modifier.height(8.dp))
-        OutlinedTextField(value = date, onValueChange = { date = it }, label = { Text("Date") }, modifier = Modifier.fillMaxWidth())
-        Spacer(Modifier.height(8.dp))
-        OutlinedTextField(
-            value = reason, onValueChange = { reason = it },
-            label = { Text("Reason / Notes") }, modifier = Modifier.fillMaxWidth(), maxLines = 3
-        )
-        Spacer(Modifier.height(16.dp))
-        Button(onClick = { nav.popBackStack() }, modifier = Modifier.fillMaxWidth()) { Text("Submit (dummy)") }
+    val calendar = java.util.Calendar.getInstance()
+    val year = calendar.get(java.util.Calendar.YEAR)
+    val month = calendar.get(java.util.Calendar.MONTH)
+    val day = calendar.get(java.util.Calendar.DAY_OF_MONTH)
+
+    val datePickerDialog = android.app.DatePickerDialog(
+        context,
+        { _, selectedYear, selectedMonth, selectedDay ->
+            date = "$selectedDay/${selectedMonth + 1}/$selectedYear"
+        },
+        year, month, day
+    )
+
+    Scaffold(topBar = { TopAppBar(title = { Text("Submit Request") }) }) { padding ->
+        Column(
+            Modifier
+                .padding(padding)
+                .padding(16.dp)
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.Center
+        ) {
+            OutlinedTextField(
+                value = type,
+                onValueChange = { type = it },
+                label = { Text("Type") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(Modifier.height(8.dp))
+
+            OutlinedTextField(
+                value = date,
+                onValueChange = {},
+                label = { Text("Select Date") },
+                modifier = Modifier.fillMaxWidth(),
+                readOnly = true,
+                trailingIcon = {
+                    IconButton(onClick = { datePickerDialog.show() }) {
+                        Icon(
+                            imageVector = androidx.compose.material.icons.Icons.Default.DateRange,
+                            contentDescription = "Select Date"
+                        )
+                    }
+                }
+            )
+
+            Spacer(Modifier.height(8.dp))
+            OutlinedTextField(
+                value = reason,
+                onValueChange = { reason = it },
+                label = { Text("Reason / Notes") },
+                modifier = Modifier.fillMaxWidth(),
+                maxLines = 3
+            )
+            Spacer(Modifier.height(16.dp))
+            Button(
+                onClick = {
+                    if (type.isNotBlank() && date.isNotBlank()) {
+                        val req = Request(employee = "Joel", type = type, date = date, reason = reason)
+                        viewModel.addRequest(req)
+                        Toast.makeText(context, "Request submitted", Toast.LENGTH_SHORT).show()
+                        nav.popBackStack()
+                    } else {
+                        Toast.makeText(context, "Please fill all fields", Toast.LENGTH_SHORT).show()
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Submit")
+            }
+        }
     }
 }
+
+
+/* ------------ Payroll + About ------------ */
 
 @Composable
 fun EmployeePaySummaryScreen(nav: NavController) {
@@ -275,8 +493,6 @@ fun EmployeePaySummaryScreen(nav: NavController) {
         Button(onClick = { nav.popBackStack() }, modifier = Modifier.fillMaxWidth()) { Text("Back") }
     }
 }
-
-/* ------------ About ------------ */
 
 @Composable
 fun AboutScreen(nav: NavController) {
