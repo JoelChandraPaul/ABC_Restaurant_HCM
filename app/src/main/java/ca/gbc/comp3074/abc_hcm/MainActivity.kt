@@ -27,9 +27,8 @@ import kotlinx.coroutines.delay
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.HorizontalDivider
 import ca.gbc.comp3074.abc_hcm.ui.theme.HCMTheme
 
@@ -80,14 +79,22 @@ fun AppNavGraph(nav: NavHostController) {
 
 @Composable
 fun SplashScreen(nav: NavController) {
+    var alpha by remember { mutableStateOf(0f) }
     LaunchedEffect(Unit) {
+        alpha = 1f
         delay(1500)
         nav.navigate("login") { popUpTo("splash") { inclusive = true } }
     }
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text("ABC Restaurant HCM\nGroup G-10", fontSize = 28.sp, fontWeight = FontWeight.Bold)
+        Text(
+            "ABC Restaurant HCM",
+            fontSize = 28.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.alpha(alpha),
+        )
     }
 }
+
 
 /* ------------ Login ------------ */
 
@@ -144,26 +151,43 @@ fun LoginScreen(nav: NavController) {
 
 @Composable
 fun ManagerDashboard(nav: NavController) {
-    Column(Modifier.fillMaxSize().padding(16.dp)) {
-        Text("Manager Dashboard", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Text(
+            "Manager Dashboard",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        )
+
         Spacer(Modifier.height(16.dp))
-        Button(onClick = { nav.navigate("manager/schedule") }, modifier = Modifier.fillMaxWidth()) {
-            Text("Manage Schedule")
-        }
-        Spacer(Modifier.height(8.dp))
-        Button(onClick = { nav.navigate("manager/payroll") }, modifier = Modifier.fillMaxWidth()) {
-            Text("Payroll Summary")
-        }
-        Spacer(Modifier.height(8.dp))
-        Button(onClick = { nav.navigate("manager/requests") }, modifier = Modifier.fillMaxWidth()) {
-            Text("View Requests")
-        }
-        Spacer(Modifier.height(8.dp))
-        Button(onClick = { nav.navigate("about") }, modifier = Modifier.fillMaxWidth()) {
-            Text("About")
-        }
+
+        DashboardButton(
+            title = "Manage Schedule",
+            icon = Icons.Default.DateRange
+        ) { nav.navigate("manager/schedule") }
+
+        DashboardButton(
+            title = "Payroll Summary",
+            icon = Icons.Default.Filled.List
+        ) { nav.navigate("manager/payroll") }
+
+        DashboardButton(
+            title = "View Requests",
+            icon = Icons.Default.Filled.List
+        ) { nav.navigate("manager/requests") }
+
+        DashboardButton(
+            title = "About",
+            icon = Icons.Default.Info
+        ) { nav.navigate("about") }
     }
 }
+
 
 data class Shift(val day: String, val employee: String, val time: String)
 
@@ -330,30 +354,48 @@ fun ViewRequestsScreen(nav: NavController) {
 
 @Composable
 fun EmployeeDashboard(nav: NavController) {
-    Column(Modifier.fillMaxSize().padding(16.dp)) {
-        Text("Employee Dashboard", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Text(
+            "Employee Dashboard",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        )
+
         Spacer(Modifier.height(16.dp))
-        Button(onClick = { nav.navigate("employee/mySchedule") }, modifier = Modifier.fillMaxWidth()) {
-            Text("My Schedule")
-        }
-        Spacer(Modifier.height(8.dp))
-        Button(onClick = { nav.navigate("employee/requestForm") }, modifier = Modifier.fillMaxWidth()) {
-            Text("Submit Request")
-        }
-        Spacer(Modifier.height(8.dp))
-        Button(onClick = { nav.navigate("employee/myRequests") }, modifier = Modifier.fillMaxWidth()) {
-            Text("My Requests")
-        }
-        Spacer(Modifier.height(8.dp))
-        Button(onClick = { nav.navigate("employee/paySummary") }, modifier = Modifier.fillMaxWidth()) {
-            Text("My Pay Summary")
-        }
-        Spacer(Modifier.height(8.dp))
-        Button(onClick = { nav.navigate("about") }, modifier = Modifier.fillMaxWidth()) {
-            Text("About")
-        }
+
+        DashboardButton(
+            title = "My Schedule",
+            icon = Icons.Default.DateRange
+        ) { nav.navigate("employee/mySchedule") }
+
+        DashboardButton(
+            title = "Submit Request",
+            icon = Icons.Default.Edit
+        ) { nav.navigate("employee/requestForm") }
+
+        DashboardButton(
+            title = "My Requests",
+            icon = Icons.AutoMirrored.Filled.List
+        ) { nav.navigate("employee/myRequests") }
+
+        DashboardButton(
+            title = "My Pay Summary",
+            icon = Icons.Default.Filled.List
+        ) { nav.navigate("employee/paySummary") }
+
+        DashboardButton(
+            title = "About",
+            icon = Icons.Default.Info
+        ) { nav.navigate("about") }
     }
 }
+
 
 /* ------------ My Requests (New) ------------ */
 
@@ -548,4 +590,24 @@ fun AboutScreen(nav: NavController) {
         Button(onClick = { nav.popBackStack() }) { Text("Back") }
     }
 }
+
+@Composable
+fun DashboardButton(title: String, icon: ImageVector, onClick: () -> Unit) {
+    Card(
+        Modifier.fillMaxWidth(),
+        onClick = onClick,
+        elevation = CardDefaults.cardElevation(4.dp),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Row(
+            Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(icon, contentDescription = title, modifier = Modifier.size(28.dp))
+            Spacer(Modifier.width(16.dp))
+            Text(title, fontSize = 18.sp, fontWeight = FontWeight.Medium)
+        }
+    }
+}
+
 

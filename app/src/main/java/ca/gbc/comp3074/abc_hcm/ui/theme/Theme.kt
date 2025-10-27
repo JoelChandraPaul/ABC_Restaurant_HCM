@@ -42,10 +42,14 @@ fun HCMTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    val colors = if (darkTheme) DarkColors else LightColors
+    //val colors = if (darkTheme) DarkColors else LightColors
+    val BrandBlue = Color(0xFF1565C0)
+    val BrandGold = Color(0xFFFFC107)
+    val BrandSurface = Color(0xFFF7F8FA)
+
 
     MaterialTheme(
-        colorScheme = colors,
+        colorScheme = lightColorScheme(primary = BrandBlue, secondary = BrandGold, surface = BrandSurface),
         typography = Typography(),
         content = content
     )
