@@ -26,7 +26,10 @@ import ca.gbc.comp3074.abc_hcm.viewmodel.RequestViewModel
 import kotlinx.coroutines.delay
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.HorizontalDivider
 import ca.gbc.comp3074.abc_hcm.ui.theme.HCMTheme
 
@@ -90,18 +93,52 @@ fun SplashScreen(nav: NavController) {
 
 @Composable
 fun LoginScreen(nav: NavController) {
-    Column(
-        Modifier.fillMaxSize().padding(20.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
     ) {
-        Text("Login as:", fontSize = 22.sp, fontWeight = FontWeight.Bold)
-        Spacer(Modifier.height(16.dp))
-        Button(onClick = { nav.navigate("manager") }, modifier = Modifier.fillMaxWidth()) { Text("Manager") }
-        Spacer(Modifier.height(8.dp))
-        Button(onClick = { nav.navigate("employee") }, modifier = Modifier.fillMaxWidth()) { Text("Employee") }
+        Card(
+            modifier = Modifier.padding(32.dp),
+            elevation = CardDefaults.cardElevation(8.dp),
+            shape = RoundedCornerShape(20.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("Login as:", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+
+                // Manager
+                Button(
+                    onClick = { nav.navigate("manager") },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Home,
+                        contentDescription = "Manager",
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text("Manager")
+                }
+
+                // Employee
+                Button(
+                    onClick = { nav.navigate("employee") },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Person,
+                        contentDescription = "Employee",
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text("Employee")
+                }
+            }
+        }
     }
 }
+
 
 /* ------------ Manager ------------ */
 
@@ -511,3 +548,4 @@ fun AboutScreen(nav: NavController) {
         Button(onClick = { nav.popBackStack() }) { Text("Back") }
     }
 }
+
