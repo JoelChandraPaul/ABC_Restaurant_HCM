@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -30,6 +31,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.vector.ImageVector
 import ca.gbc.comp3074.abc_hcm.ui.theme.HCMTheme
 
 
@@ -173,12 +176,12 @@ fun ManagerDashboard(nav: NavController) {
 
         DashboardButton(
             title = "Payroll Summary",
-            icon = Icons.Default.Filled.List
+            icon = Icons.AutoMirrored.Filled.List
         ) { nav.navigate("manager/payroll") }
 
         DashboardButton(
             title = "View Requests",
-            icon = Icons.Default.Filled.List
+            icon = Icons.AutoMirrored.Filled.List
         ) { nav.navigate("manager/requests") }
 
         DashboardButton(
@@ -386,7 +389,7 @@ fun EmployeeDashboard(nav: NavController) {
 
         DashboardButton(
             title = "My Pay Summary",
-            icon = Icons.Default.Filled.List
+            icon = Icons.AutoMirrored.Filled.List
         ) { nav.navigate("employee/paySummary") }
 
         DashboardButton(
@@ -594,8 +597,9 @@ fun AboutScreen(nav: NavController) {
 @Composable
 fun DashboardButton(title: String, icon: ImageVector, onClick: () -> Unit) {
     Card(
-        Modifier.fillMaxWidth(),
-        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },  // 让整个卡片可点击
         elevation = CardDefaults.cardElevation(4.dp),
         shape = RoundedCornerShape(12.dp)
     ) {
@@ -609,5 +613,6 @@ fun DashboardButton(title: String, icon: ImageVector, onClick: () -> Unit) {
         }
     }
 }
+
 
 
