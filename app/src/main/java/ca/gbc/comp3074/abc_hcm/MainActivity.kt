@@ -203,15 +203,129 @@ fun ManageScheduleScreen(nav: NavController) {
         Shift("Thu", "Jingyu", "10–6"),
         Shift("Fri", "Joel", "8–4")
     )
-    Column(Modifier.fillMaxSize().padding(16.dp)) {
-        Text("Weekly Schedule (All Employees)", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+    ) {
+        Text(
+            text = "Weekly Schedule",
+            style = MaterialTheme.typography.headlineSmall.copy(
+                fontWeight = FontWeight.Bold,
+                fontSize = 22.sp
+            )
+        )
+        Text(
+            text = "All Employees",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
         Spacer(Modifier.height(12.dp))
-        week.forEach {
-            Text("${it.day}: ${it.employee}  ${it.time}", fontSize = 18.sp)
-            HorizontalDivider()
+
+        ElevatedCard(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Column(Modifier.padding(vertical = 8.dp)) {
+
+                ScheduleHeaderRow()
+                Divider(color = MaterialTheme.colorScheme.outlineVariant)
+
+                week.forEachIndexed { index, shift ->
+                    ScheduleRow(shift)
+                    if (index != week.lastIndex) {
+                        Divider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))
+                    }
+                }
+            }
         }
+
         Spacer(Modifier.height(16.dp))
-        Button(onClick = { nav.popBackStack() }, modifier = Modifier.fillMaxWidth()) { Text("Back") }
+
+
+        Button(
+            onClick = { nav.popBackStack() },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Text("Back", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+
+@Composable
+private fun ScheduleHeaderRow() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = "Day",
+            modifier = Modifier.weight(0.25f),
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            text = "Employee",
+            modifier = Modifier.weight(0.45f),
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            text = "Shift",
+            modifier = Modifier.weight(0.30f),
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+
+
+@Composable
+private fun ScheduleRow(shift: Shift) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceVariant,
+            shape = RoundedCornerShape(8.dp)
+        ) {
+            Text(
+                text = shift.day,
+                modifier = Modifier
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                    .weight(0.25f, fill = false),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        Spacer(Modifier.width(12.dp))
+
+        Text(
+            text = shift.employee,
+            modifier = Modifier.weight(0.45f),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+
+        Text(
+            text = shift.time,
+            modifier = Modifier.weight(0.30f),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+            // 右对齐更好扫读
+            textAlign = androidx.compose.ui.text.style.TextAlign.End
+        )
     }
 }
 
