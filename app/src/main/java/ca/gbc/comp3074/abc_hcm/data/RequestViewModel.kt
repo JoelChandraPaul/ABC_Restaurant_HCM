@@ -10,7 +10,7 @@ import ca.gbc.comp3074.abc_hcm.data.Request
 import kotlinx.coroutines.launch
 
 class RequestViewModel(app: Application) : AndroidViewModel(app) {
-    private val db = Room.databaseBuilder(app, AppDatabase::class.java, "abc_hcm.db").build()
+    private val db = AppDatabase.getDatabase(app)
     val requests = db.requestDao().getAll().asLiveData()
 
     fun addRequest(r: Request) = viewModelScope.launch {

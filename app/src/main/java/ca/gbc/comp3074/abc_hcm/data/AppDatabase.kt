@@ -8,7 +8,7 @@ import androidx.room.RoomDatabase
 @Database(entities = [Request::class], version = 2, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun requestDao(): RequestDao
-
+    abstract fun scheduleDao(): ScheduleDao
     companion object {
         @Volatile
         private var INSTANCE: AppDatabase? = null
