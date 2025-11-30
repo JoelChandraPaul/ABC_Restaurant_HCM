@@ -232,22 +232,43 @@ fun RequestCard(
                 )
             }
 
-            // 只对待处理的请求显示操作按钮
-            if (request.status == "Pending") {
-                Spacer(Modifier.height(16.dp))
-                Divider()
-                Spacer(Modifier.height(12.dp))
+            // 显示操作按钮（允许管理员随时修改状态）
+            Spacer(Modifier.height(16.dp))
+            Divider()
+            Spacer(Modifier.height(12.dp))
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Approve Button - filled if already approved, outlined otherwise
+                if (request.status == "Approved") {
                     Button(
                         onClick = onApprove,
                         modifier = Modifier.weight(1f),
+                        enabled = false,
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF4CAF50)
+                            containerColor = Color(0xFF4CAF50),
+                            disabledContainerColor = Color(0xFF4CAF50).copy(alpha = 0.6f),
+                            disabledContentColor = Color.White
                         )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CheckCircle,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text("Approved")
+                    }
+                } else {
+                    OutlinedButton(
+                        onClick = onApprove,
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = Color(0xFF4CAF50)
+                        ),
+                        border = BorderStroke(1.5.dp, Color(0xFF4CAF50))
                     ) {
                         Icon(
                             imageVector = Icons.Default.CheckCircle,
@@ -257,14 +278,36 @@ fun RequestCard(
                         Spacer(Modifier.width(8.dp))
                         Text("Approve")
                     }
+                }
 
+                // Reject Button - filled if already rejected, outlined otherwise
+                if (request.status == "Rejected") {
+                    Button(
+                        onClick = onReject,
+                        modifier = Modifier.weight(1f),
+                        enabled = false,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFF44336),
+                            disabledContainerColor = Color(0xFFF44336).copy(alpha = 0.6f),
+                            disabledContentColor = Color.White
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text("Rejected")
+                    }
+                } else {
                     OutlinedButton(
                         onClick = onReject,
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.outlinedButtonColors(
                             contentColor = Color(0xFFF44336)
                         ),
-                        border = BorderStroke(1.dp, Color(0xFFF44336))
+                        border = BorderStroke(1.5.dp, Color(0xFFF44336))
                     ) {
                         Icon(
                             imageVector = Icons.Default.Close,
@@ -275,6 +318,17 @@ fun RequestCard(
                         Text("Reject")
                     }
                 }
+            }
+
+            // Add a hint for managers
+            if (request.status != "Pending") {
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    "Click ${if (request.status == "Approved") "Reject" else "Approve"} to change the status",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         }
     }
