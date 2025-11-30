@@ -51,6 +51,7 @@ fun AdminDashboard(nav: NavHostController) {
                 DashboardOption("Manage Schedule", Icons.Default.CalendarMonth) {
                     nav.navigate("admin_calendar")
                 }
+
                 DashboardOption("Manage Requests", Icons.Default.Notifications) {
                     nav.navigate("admin_requests")
                 }

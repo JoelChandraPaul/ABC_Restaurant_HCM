@@ -12,7 +12,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import ca.gbc.comp3074.abc_hcm.viewmodel.EmployeeViewModel
 import ca.gbc.comp3074.abc_hcm.viewmodel.ScheduleViewModel
-import java.util.*
+import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -147,7 +147,8 @@ fun AddScheduleScreen(
                 enabled = selectedEmployee.isNotEmpty() && selectedDay.isNotEmpty() && startHour != null && endHour != null,
                 modifier = Modifier.fillMaxWidth().height(55.dp),
                 onClick = {
-                    vm.add(selectedDay, shiftLabel, selectedEmployee)
+                    val date = LocalDate.parse(selectedDay)  // Convert selectedDay to LocalDate
+                    vm.add(date, shiftLabel, selectedEmployee)
                     nav.popBackStack()
                 }
             ) { Text("Save Shift") }

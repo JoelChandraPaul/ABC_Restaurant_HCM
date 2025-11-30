@@ -36,34 +36,40 @@ fun AdminPayrollScreen(nav: NavController, vm: PayrollViewModel = viewModel()) {
 
         Spacer(Modifier.height(20.dp))
 
-        LazyColumn(Modifier.weight(1f)) {
-            items(payroll) { p ->
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFEFF6FF)),
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
-                    shape = MaterialTheme.shapes.large,
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                ) {
-                    Column(Modifier.padding(18.dp)) {
+        // Display a loading indicator if the payroll data is empty
+        if (payroll.isEmpty()) {
+            CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+            Text("Loading payroll data...", modifier = Modifier.align(Alignment.CenterHorizontally))
+        } else {
+            LazyColumn(Modifier.weight(1f)) {
+                items(payroll) { p ->
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFEFF6FF)),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                        shape = MaterialTheme.shapes.large,
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    ) {
+                        Column(Modifier.padding(18.dp)) {
 
-                        Text("${p.employeeName}  •  ${p.employeeId}",
-                            fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                            Text("${p.employeeName}  •  ${p.employeeId}",
+                                fontWeight = FontWeight.Bold, fontSize = 18.sp)
 
-                        Spacer(Modifier.height(6.dp))
+                            Spacer(Modifier.height(6.dp))
 
-                        Text("Hours Worked: ${p.hoursWorked}")
-                        Text("Hourly Rate: \$${p.hourlyRate}")
+                            Text("Hours Worked: ${p.hoursWorked}")
+                            Text("Hourly Rate: \$${p.hourlyRate}")
 
-                        Spacer(Modifier.height(8.dp))
-                        Divider()
+                            Spacer(Modifier.height(8.dp))
+                            Divider()
 
-                        Text(
-                            "Total Pay:  ${NumberFormat.getCurrencyInstance().format(p.totalPay)}",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp,
-                            color = Color(0xFF0077CC),
-                            modifier = Modifier.padding(top = 8.dp)
-                        )
+                            Text(
+                                "Total Pay:  ${NumberFormat.getCurrencyInstance().format(p.totalPay)}",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 18.sp,
+                                color = Color(0xFF0077CC),
+                                modifier = Modifier.padding(top = 8.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -71,6 +77,7 @@ fun AdminPayrollScreen(nav: NavController, vm: PayrollViewModel = viewModel()) {
 
         Spacer(Modifier.height(18.dp))
 
+        // Back button to navigate back
         Button(
             modifier = Modifier.fillMaxWidth(),
             onClick = { nav.popBackStack() }

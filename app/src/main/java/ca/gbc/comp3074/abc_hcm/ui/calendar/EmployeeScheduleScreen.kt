@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import ca.gbc.comp3074.abc_hcm.data.Schedule
 import ca.gbc.comp3074.abc_hcm.viewmodel.ScheduleViewModel
+import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,7 +58,7 @@ fun EmployeeScheduleScreen(
 
     val schedules = allSchedules
         .filter { selectedFilter == "All" || shiftType(it.shift) == selectedFilter }
-        .let { list -> if (sortByHours) list.sortedByDescending { getHours(it.shift) } else list.sortedBy { getDayOrder(it.day) } }
+        .let { list -> if (sortByHours) list.sortedByDescending { getHours(it.shift) } else list.sortedBy { getDayOrder(it.date) } }
 
     Scaffold(topBar = { TopAppBar(title = { Text("My Schedule", fontWeight = FontWeight.Bold) }) }) { pad ->
 
@@ -145,7 +146,6 @@ private fun FiltersSection(selected: String, onSelect: (String) -> Unit) {
     }
 }
 
-/* ⭐ HERE IS THE FIX - SortRow() was missing */
 @Composable
 private fun SortRow(sortByHours: Boolean, onToggle: () -> Unit) =
     Row(
@@ -161,7 +161,9 @@ private fun SortRow(sortByHours: Boolean, onToggle: () -> Unit) =
     }
 
 @Composable
-private fun ScheduleCardLarge(s: Schedule, hours: Int) =
+private fun ScheduleCardLarge(s: Schedule, hours: Int) {
+    val formattedDay = LocalDate.parse(s.date).dayOfWeek.name
+
     Card(
         Modifier.fillMaxWidth().height(95.dp),
         shape = RoundedCornerShape(18.dp),
@@ -174,12 +176,15 @@ private fun ScheduleCardLarge(s: Schedule, hours: Int) =
                     .clip(RoundedCornerShape(16.dp))
                     .background(Brush.verticalGradient(getShiftColors(hours))),
                 contentAlignment = Alignment.Center
-            ) { Icon(Icons.Default.Schedule, null, tint = Color.White, modifier = Modifier.size(28.dp)) }
+            ) {
+                Icon(Icons.Default.Schedule, null, tint = Color.White, modifier = Modifier.size(28.dp))
+            }
 
             Spacer(Modifier.width(16.dp))
 
             Column(Modifier.weight(1f)) {
-                Text(s.day, fontWeight = FontWeight.Bold, fontSize = MaterialTheme.typography.titleMedium.fontSize)
+                // Display the formatted day of the week
+                Text(formattedDay, fontWeight = FontWeight.Bold, fontSize = MaterialTheme.typography.titleMedium.fontSize)
                 Text(s.shift, color = Color.DarkGray, fontWeight = FontWeight.Medium)
             }
 
@@ -188,6 +193,7 @@ private fun ScheduleCardLarge(s: Schedule, hours: Int) =
             }
         }
     }
+}
 
 private fun getShiftColors(h: Int) = when (h) {
     in 6..11 -> listOf(Color(0xFFFFB74D), Color(0xFFFF9800))
