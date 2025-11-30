@@ -31,7 +31,7 @@ fun AdminRequestScreen(
     val requests = requestVm.requests.observeAsState(emptyList()).value
     val employees = employeeVm.employees.observeAsState(emptyList()).value
 
-    // 创建员工ID到姓名的映射
+    // Create employee ID to name mapping
     val employeeMap = remember(employees) {
         employees.associate { it.employeeId to it.name }
     }
@@ -45,7 +45,7 @@ fun AdminRequestScreen(
         )
         Spacer(Modifier.height(8.dp))
 
-        // 统计信息
+        // Summary statistics
         val pendingCount = requests.count { it.status == "Pending" }
         val approvedCount = requests.count { it.status == "Approved" }
         val rejectedCount = requests.count { it.status == "Rejected" }
@@ -155,7 +155,7 @@ fun RequestCard(
     ) {
         Column(Modifier.padding(16.dp)) {
 
-            // 头部：员工信息和状态
+            // Header: Employee info and status
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -174,7 +174,7 @@ fun RequestCard(
                     )
                 }
 
-                // 状态徽章
+                // Status badge
                 Surface(
                     shape = MaterialTheme.shapes.small,
                     color = statusColor.copy(alpha = 0.15f),
@@ -205,7 +205,7 @@ fun RequestCard(
             Divider()
             Spacer(Modifier.height(12.dp))
 
-            // 请假详情
+            // Leave request details
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -232,22 +232,43 @@ fun RequestCard(
                 )
             }
 
-            // 只对待处理的请求显示操作按钮
-            if (request.status == "Pending") {
-                Spacer(Modifier.height(16.dp))
-                Divider()
-                Spacer(Modifier.height(12.dp))
+            // Action buttons (allow manager to change status anytime)
+            Spacer(Modifier.height(16.dp))
+            Divider()
+            Spacer(Modifier.height(12.dp))
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Approve Button - filled if already approved, outlined otherwise
+                if (request.status == "Approved") {
                     Button(
                         onClick = onApprove,
                         modifier = Modifier.weight(1f),
+                        enabled = false,
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF4CAF50)
+                            containerColor = Color(0xFF4CAF50),
+                            disabledContainerColor = Color(0xFF4CAF50).copy(alpha = 0.6f),
+                            disabledContentColor = Color.White
                         )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CheckCircle,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text("Approved")
+                    }
+                } else {
+                    OutlinedButton(
+                        onClick = onApprove,
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = Color(0xFF4CAF50)
+                        ),
+                        border = BorderStroke(1.5.dp, Color(0xFF4CAF50))
                     ) {
                         Icon(
                             imageVector = Icons.Default.CheckCircle,
@@ -257,14 +278,36 @@ fun RequestCard(
                         Spacer(Modifier.width(8.dp))
                         Text("Approve")
                     }
+                }
 
+                // Reject Button - filled if already rejected, outlined otherwise
+                if (request.status == "Rejected") {
+                    Button(
+                        onClick = onReject,
+                        modifier = Modifier.weight(1f),
+                        enabled = false,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFF44336),
+                            disabledContainerColor = Color(0xFFF44336).copy(alpha = 0.6f),
+                            disabledContentColor = Color.White
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text("Rejected")
+                    }
+                } else {
                     OutlinedButton(
                         onClick = onReject,
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.outlinedButtonColors(
                             contentColor = Color(0xFFF44336)
                         ),
-                        border = BorderStroke(1.dp, Color(0xFFF44336))
+                        border = BorderStroke(1.5.dp, Color(0xFFF44336))
                     ) {
                         Icon(
                             imageVector = Icons.Default.Close,
@@ -275,6 +318,17 @@ fun RequestCard(
                         Text("Reject")
                     }
                 }
+            }
+
+            // Add a hint for managers
+            if (request.status != "Pending") {
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    "Click ${if (request.status == "Approved") "Reject" else "Approve"} to change the status",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         }
     }
