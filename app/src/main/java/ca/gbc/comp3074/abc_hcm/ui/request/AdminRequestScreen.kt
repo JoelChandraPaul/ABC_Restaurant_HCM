@@ -31,7 +31,7 @@ fun AdminRequestScreen(
     val requests = requestVm.requests.observeAsState(emptyList()).value
     val employees = employeeVm.employees.observeAsState(emptyList()).value
 
-    // 创建员工ID到姓名的映射
+    // Create employee ID to name mapping
     val employeeMap = remember(employees) {
         employees.associate { it.employeeId to it.name }
     }
@@ -45,7 +45,7 @@ fun AdminRequestScreen(
         )
         Spacer(Modifier.height(8.dp))
 
-        // 统计信息
+        // Summary statistics
         val pendingCount = requests.count { it.status == "Pending" }
         val approvedCount = requests.count { it.status == "Approved" }
         val rejectedCount = requests.count { it.status == "Rejected" }
@@ -155,7 +155,7 @@ fun RequestCard(
     ) {
         Column(Modifier.padding(16.dp)) {
 
-            // 头部：员工信息和状态
+            // Header: Employee info and status
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -174,7 +174,7 @@ fun RequestCard(
                     )
                 }
 
-                // 状态徽章
+                // Status badge
                 Surface(
                     shape = MaterialTheme.shapes.small,
                     color = statusColor.copy(alpha = 0.15f),
@@ -205,7 +205,7 @@ fun RequestCard(
             Divider()
             Spacer(Modifier.height(12.dp))
 
-            // 请假详情
+            // Leave request details
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -232,7 +232,7 @@ fun RequestCard(
                 )
             }
 
-            // 显示操作按钮（允许管理员随时修改状态）
+            // Action buttons (allow manager to change status anytime)
             Spacer(Modifier.height(16.dp))
             Divider()
             Spacer(Modifier.height(12.dp))
