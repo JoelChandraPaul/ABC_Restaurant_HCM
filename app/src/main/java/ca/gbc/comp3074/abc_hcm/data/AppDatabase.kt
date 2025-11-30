@@ -10,9 +10,11 @@ import androidx.room.RoomDatabase
         Employee::class,
         Schedule::class,
         Request::class,
-        User::class
+        User::class,
+        PayPeriod::class,
+        PayrollHistory::class
     ],
-    version = 10,
+    version = 11,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -21,6 +23,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun scheduleDao(): ScheduleDao
     abstract fun requestDao(): RequestDao
     abstract fun userDao(): UserDao
+    abstract fun payPeriodDao(): PayPeriodDao
+    abstract fun payrollHistoryDao(): PayrollHistoryDao
 
     companion object {
         @Volatile

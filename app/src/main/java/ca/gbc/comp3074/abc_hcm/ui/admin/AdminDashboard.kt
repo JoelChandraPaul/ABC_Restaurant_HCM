@@ -35,12 +35,15 @@ fun AdminDashboard(nav: NavHostController) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(pad)
-                .padding(22.dp),
-            verticalArrangement = Arrangement.SpaceBetween
+                .padding(22.dp)
         ) {
 
             //================== MAIN MENU ==================//
-            Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(18.dp)
+            ) {
+                Spacer(Modifier.height(8.dp))
 
                 DashboardOption("Add Employee", Icons.Default.PersonAdd) {
                     nav.navigate("admin_add_employee")
@@ -51,7 +54,6 @@ fun AdminDashboard(nav: NavHostController) {
                 DashboardOption("Manage Schedule", Icons.Default.CalendarMonth) {
                     nav.navigate("admin_calendar")
                 }
-
                 DashboardOption("Manage Requests", Icons.Default.Notifications) {
                     nav.navigate("admin_requests")
                 }
@@ -61,6 +63,8 @@ fun AdminDashboard(nav: NavHostController) {
             }
 
             //================== LOGOUT ==================//
+            Spacer(Modifier.height(24.dp))
+
             Button(
                 onClick = {
                     nav.navigate("role_select") {
@@ -69,14 +73,23 @@ fun AdminDashboard(nav: NavHostController) {
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(55.dp),
+                    .height(56.dp),
                 shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F))
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error
+                )
             ) {
                 Icon(Icons.Default.ExitToApp, contentDescription = null, tint = Color.White)
                 Spacer(Modifier.width(10.dp))
-                Text("Logout", color = Color.White, fontSize = 17.sp)
+                Text(
+                    "Logout",
+                    color = Color.White,
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
             }
+
+            Spacer(Modifier.height(8.dp))
         }
     }
 }
@@ -88,9 +101,11 @@ fun DashboardOption(text: String, icon: androidx.compose.ui.graphics.vector.Imag
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF0A74DA)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+        shape = MaterialTheme.shapes.large,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primary
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
 
         Row(
@@ -103,17 +118,25 @@ fun DashboardOption(text: String, icon: androidx.compose.ui.graphics.vector.Imag
 
             Box(
                 modifier = Modifier
-                    .size(42.dp)
-                    .background(Color.White.copy(alpha = 0.15f), CircleShape),
+                    .size(48.dp)
+                    .background(
+                        MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f),
+                        CircleShape
+                    ),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(24.dp))
+                Icon(
+                    icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(26.dp)
+                )
             }
 
             Text(
                 text,
-                color = Color.White,
-                fontSize = 18.sp,
+                color = MaterialTheme.colorScheme.onPrimary,
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
         }

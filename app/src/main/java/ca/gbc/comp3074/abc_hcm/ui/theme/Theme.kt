@@ -1,56 +1,126 @@
 package ca.gbc.comp3074.abc_hcm.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 
-// ------------ Color Palette ------------
+// ============================================
+// ABC Restaurant HCM Theme
+// ============================================
 
-private val PurplePrimary = Color(0xFF6C63FF)
-private val PurpleContainer = Color(0xFFE8E7FF)
-private val TealAccent = Color(0xFF00BFA6)
-private val ErrorRed = Color(0xFFE53935)
-private val BackgroundLight = Color(0xFFF7F5FA)
-private val TextDark = Color(0xFF1B1B1B)
-
-// ------------ Light Color Scheme ------------
-private val LightColors = lightColorScheme(
-    primary = PurplePrimary,
+// Light Theme Color Scheme
+private val LightColorScheme = lightColorScheme(
+    // Primary Colors
+    primary = OrangePrimary,
     onPrimary = Color.White,
-    primaryContainer = PurpleContainer,
-    secondary = TealAccent,
+    primaryContainer = OrangeContainer,
+    onPrimaryContainer = OrangePrimaryDark,
+
+    // Secondary Colors
+    secondary = TealSecondary,
     onSecondary = Color.White,
-    error = ErrorRed,
+    secondaryContainer = TealContainer,
+    onSecondaryContainer = TealSecondaryDark,
+
+    // Tertiary Colors
+    tertiary = AmberTertiary,
+    onTertiary = Color.White,
+    tertiaryContainer = AmberContainer,
+    onTertiaryContainer = Color(0xFF5D4037),
+
+    // Background & Surface
     background = BackgroundLight,
-    onBackground = TextDark,
-    surface = Color.White,
-    onSurface = TextDark
+    onBackground = TextPrimary,
+    surface = SurfaceLight,
+    onSurface = TextPrimary,
+    surfaceVariant = BackgroundVariant,
+    onSurfaceVariant = TextSecondary,
+
+    // Error
+    error = ErrorRed,
+    onError = Color.White,
+    errorContainer = ErrorContainer,
+    onErrorContainer = Color(0xFFB71C1C),
+
+    // Outline & Other
+    outline = Gray400,
+    outlineVariant = Gray300,
+    scrim = Color.Black.copy(alpha = 0.32f),
+    inverseSurface = Gray800,
+    inverseOnSurface = Color.White,
+    inversePrimary = OrangePrimaryLight
 )
 
-// ------------ Dark Color Scheme ------------
-private val DarkColors = darkColorScheme(
-    primary = PurplePrimary,
-    onPrimary = Color.White,
-    secondary = TealAccent,
-    error = ErrorRed
+// Dark Theme Color Scheme
+private val DarkColorScheme = darkColorScheme(
+    // Primary Colors
+    primary = OrangePrimaryDarkTheme,
+    onPrimary = Gray900,
+    primaryContainer = OrangePrimaryDark,
+    onPrimaryContainer = OrangeContainer,
+
+    // Secondary Colors
+    secondary = TealSecondaryDarkTheme,
+    onSecondary = Gray900,
+    secondaryContainer = TealSecondaryDark,
+    onSecondaryContainer = TealContainer,
+
+    // Tertiary Colors
+    tertiary = AmberTertiary,
+    onTertiary = Gray900,
+    tertiaryContainer = Color(0xFF795548),
+    onTertiaryContainer = AmberContainer,
+
+    // Background & Surface
+    background = BackgroundDark,
+    onBackground = Color.White,
+    surface = SurfaceDark,
+    onSurface = Color.White,
+    surfaceVariant = Gray800,
+    onSurfaceVariant = Gray400,
+
+    // Error
+    error = Color(0xFFEF5350),
+    onError = Gray900,
+    errorContainer = Color(0xFFB71C1C),
+    onErrorContainer = ErrorContainer,
+
+    // Outline & Other
+    outline = Gray600,
+    outlineVariant = Gray700,
+    scrim = Color.Black.copy(alpha = 0.6f),
+    inverseSurface = Gray200,
+    inverseOnSurface = Gray900,
+    inversePrimary = OrangePrimary
 )
 
-// ------------ Theme Wrapper ------------
+// Custom Shapes
+private val AppShapes = Shapes(
+    extraSmall = RoundedCornerShape(4.dp),
+    small = RoundedCornerShape(8.dp),
+    medium = RoundedCornerShape(12.dp),
+    large = RoundedCornerShape(16.dp),
+    extraLarge = RoundedCornerShape(24.dp)
+)
+
 @Composable
 fun HCMTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
+    dynamicColor: Boolean = false, // Disable dynamic colors to maintain brand consistency
     content: @Composable () -> Unit
 ) {
-    //val colors = if (darkTheme) DarkColors else LightColors
-    val BrandBlue = Color(0xFF1565C0)
-    val BrandGold = Color(0xFFFFC107)
-    val BrandSurface = Color(0xFFF7F8FA)
-
+    val colorScheme = when {
+        darkTheme -> DarkColorScheme
+        else -> LightColorScheme
+    }
 
     MaterialTheme(
-        colorScheme = lightColorScheme(primary = BrandBlue, secondary = BrandGold, surface = BrandSurface),
-        typography = Typography(),
+        colorScheme = colorScheme,
+        typography = AppTypography,
+        shapes = AppShapes,
         content = content
     )
 }

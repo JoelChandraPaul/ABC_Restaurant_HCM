@@ -65,40 +65,82 @@ fun AdminCalendarScreen(
         }
     ) { padding ->
 
-        Column(Modifier.padding(padding).padding(18.dp)) {
+        Column(
+            Modifier
+                .padding(padding)
+                .padding(16.dp)
+                .fillMaxSize()
+        ) {
 
-            // Month Navigation
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                IconButton(onClick = { month = month.minusMonths(1) }) {
-                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, null)
-                }
-                Text("${month.month} ${month.year}", fontWeight = FontWeight.Bold)
-                IconButton(onClick = { month = month.plusMonths(1) }) {
-                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null)
+            // Month Navigation Card
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            ) {
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 12.dp, horizontal = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = { month = month.minusMonths(1) }) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                            contentDescription = "Previous Month",
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                    Text(
+                        text = "${month.month} ${month.year}",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                    IconButton(onClick = { month = month.plusMonths(1) }) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                            contentDescription = "Next Month",
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
                 }
             }
 
-            // Days of the Week Header
-            val daysOfWeek = listOf("Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri")
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                daysOfWeek.forEach {
+            // Days of the Week Header (Monday to Sunday)
+            val daysOfWeek = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                daysOfWeek.forEach { day ->
                     Text(
-                        text = it,
-                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                        text = day,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
                         modifier = Modifier.weight(1f),
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             }
 
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(4.dp))
 
             val firstDayOfMonth = month.atDay(1)
+            // dayOfWeek.value: Monday=1, Tuesday=2, ..., Sunday=7
             val firstDayOfWeek = firstDayOfMonth.dayOfWeek.value
 
             val days = mutableListOf<LocalDate>()
 
-            // Add empty days at the start to align with the correct weekday
+            // Add empty days at the start to align with Monday (1-indexed, so subtract 1)
             for (i in 1 until firstDayOfWeek) {
                 days.add(LocalDate.MIN)
             }
@@ -113,31 +155,74 @@ fun AdminCalendarScreen(
             }
 
             // Grid for days
-            LazyVerticalGrid(columns = GridCells.Fixed(7),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(7),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxSize()
             ) {
                 items(days) { date ->
 
-                    if (date == LocalDate.MIN) return@items
+                    if (date == LocalDate.MIN) {
+                        // Empty spacer for alignment
+                        Box(modifier = Modifier.aspectRatio(1f))
+                        return@items
+                    }
 
                     val isShiftDay = scheduledDates.contains(date.toString())
-                    val bg = if (isShiftDay) MaterialTheme.colorScheme.primary.copy(0.16f) else Color.Transparent
-                    val border = if (isShiftDay) MaterialTheme.colorScheme.primary else Color.LightGray
+                    val isToday = date == LocalDate.now()
 
-                    Column(
+                    // Color scheme
+                    val backgroundColor = when {
+                        isToday && isShiftDay -> MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+                        isToday -> MaterialTheme.colorScheme.secondaryContainer
+                        isShiftDay -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
+                        else -> MaterialTheme.colorScheme.surface
+                    }
+
+                    val textColor = when {
+                        isToday -> MaterialTheme.colorScheme.primary
+                        isShiftDay -> MaterialTheme.colorScheme.onPrimaryContainer
+                        else -> MaterialTheme.colorScheme.onSurface
+                    }
+
+                    Card(
                         modifier = Modifier
-                            .background(bg)
-                            .border(1.dp, border)
-                            .padding(6.dp)
+                            .aspectRatio(1f)
                             .clickable {
                                 selectedDate = date
                                 openSheet = true
                             },
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        colors = CardDefaults.cardColors(
+                            containerColor = backgroundColor
+                        ),
+                        elevation = CardDefaults.cardElevation(
+                            defaultElevation = if (isShiftDay || isToday) 4.dp else 2.dp
+                        ),
+                        shape = MaterialTheme.shapes.medium
                     ) {
-                        Text("${date.dayOfMonth}", fontWeight = FontWeight.Bold)
-                        Text(if (isShiftDay) "View" else "Add", color = MaterialTheme.colorScheme.primary)
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(4.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                text = "${date.dayOfMonth}",
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = if (isToday) FontWeight.ExtraBold else FontWeight.SemiBold,
+                                color = textColor
+                            )
+                            Spacer(Modifier.height(2.dp))
+                            Text(
+                                text = if (isShiftDay) "View" else "Add",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = if (isShiftDay) MaterialTheme.colorScheme.primary
+                                       else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                fontWeight = if (isShiftDay) FontWeight.Bold else FontWeight.Normal
+                            )
+                        }
                     }
                 }
             }
