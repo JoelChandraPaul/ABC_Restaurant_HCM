@@ -9,7 +9,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,6 +26,7 @@ import androidx.navigation.NavController
 import ca.gbc.comp3074.abc_hcm.data.Schedule
 import ca.gbc.comp3074.abc_hcm.viewmodel.ScheduleViewModel
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EmployeeScheduleScreen(
@@ -31,7 +34,7 @@ fun EmployeeScheduleScreen(
     employeeId: String,
     vm: ScheduleViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
-    var selectedShiftFilter by remember { mutableStateOf("All") }
+    var selectedFilter by remember { mutableStateOf("All") }
     var sortByHours by remember { mutableStateOf(false) }
     var selectedSchedule by remember { mutableStateOf<Schedule?>(null) }
     var showRequestDialog by remember { mutableStateOf(false) }
@@ -39,84 +42,52 @@ fun EmployeeScheduleScreen(
     val allSchedules = vm.schedules.collectAsState(initial = emptyList()).value
         .filter { it.employee == employeeId }
 
+    fun getHours(shift: String): Int {
+        val parts = shift.replace(" ", "").split("-")
+        val s = parts[0].take(2).toIntOrNull() ?: return 0
+        val e = parts.getOrNull(1)?.take(2)?.toIntOrNull() ?: return 0
+        return if (e >= s) e - s else 24 - s + e
+    }
+
+    fun shiftType(shift: String): String {
+        val start = shift.take(2).toIntOrNull() ?: 0
+        return when (start) {
+            in 6..11 -> "Morning"
+            in 12..16 -> "Afternoon"
+            in 17..21 -> "Evening"
+            else -> "Night"
+        }
+    }
+
     val schedules = allSchedules
-        .filter {
-            selectedShiftFilter == "All" || it.shift.equals(selectedShiftFilter, ignoreCase = true)
-        }
-        .let { filtered ->
-            if (sortByHours) filtered.sortedByDescending { it.hours }
-            else filtered.sortedBy { getDayOrder(it.day) }
-        }
+        .filter { selectedFilter == "All" || shiftType(it.shift) == selectedFilter }
+        .let { list -> if (sortByHours) list.sortedByDescending { getHours(it.shift) } else list.sortedBy { getDayOrder(it.day) } }
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.DateRange,
-                            contentDescription = "Schedule",
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(28.dp)
-                        )
-                        Text(
-                            "My Schedule",
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
-            )
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 20.dp, vertical = 16.dp)
-        ) {
+        topBar = { TopAppBar(title = { Text("My Schedule", fontWeight = FontWeight.Bold) }) }
+    ) { p ->
 
-            if (allSchedules.isEmpty()) {
-                EmptyScheduleState()
-            } else {
-                ScheduleSummaryCard(schedules)
+        Column(Modifier.fillMaxSize().padding(p).padding(20.dp)) {
+
+            if (allSchedules.isEmpty()) EmptyScheduleState()
+            else {
+                ScheduleSummaryCard(
+                    hours = schedules.sumOf { getHours(it.shift) },
+                    total = schedules.size
+                )
+
                 Spacer(Modifier.height(16.dp))
-
-                // Filter chips
-                FilterChipsRow(
-                    selectedFilter = selectedShiftFilter,
-                    onFilterSelected = { selectedShiftFilter = it }
-                )
+                FilterChipsRow(selectedFilter) { selectedFilter = it }
                 Spacer(Modifier.height(12.dp))
-
-                // Sort toggle
-                SortToggle(
-                    sortByHours = sortByHours,
-                    onToggle = { sortByHours = !sortByHours }
-                )
+                SortToggle(sortByHours) { sortByHours = !sortByHours }
                 Spacer(Modifier.height(16.dp))
 
-                if (schedules.isEmpty()) {
-                    EmptyFilterState()
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(schedules) { schedule ->
-                            EnhancedScheduleCard(
-                                schedule = schedule,
-                                onClick = {
-                                    selectedSchedule = schedule
-                                    showRequestDialog = true
-                                }
-                            )
+                if (schedules.isEmpty()) EmptyFilterState()
+                else LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.weight(1f)) {
+                    items(schedules) { s ->
+                        EnhancedScheduleCard(schedule = s, hours = getHours(s.shift)) {
+                            selectedSchedule = s
+                            showRequestDialog = true
                         }
                     }
                 }
@@ -126,489 +97,113 @@ fun EmployeeScheduleScreen(
 
             OutlinedButton(
                 onClick = { nav.popBackStack() },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = MaterialTheme.colorScheme.primary
-                )
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
-                    modifier = Modifier.size(20.dp)
-                )
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
                 Spacer(Modifier.width(8.dp))
                 Text("Back to Dashboard")
             }
         }
     }
 
-    // Request Dialog
-    if (showRequestDialog && selectedSchedule != null) {
-        RequestDialog(
-            schedule = selectedSchedule!!,
-            onDismiss = { showRequestDialog = false }
-        )
-    }
+    if (showRequestDialog && selectedSchedule != null)
+        RequestDialog(selectedSchedule!!) { showRequestDialog = false }
 }
 
-@Composable
-private fun ScheduleSummaryCard(schedules: List<Schedule>) {
-    val totalHours = schedules.sumOf { it.hours }
-    val totalShifts = schedules.size
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            SummaryItem(
-                label = "Total Shifts",
-                value = totalShifts.toString()
-            )
-            HorizontalDivider(
-                modifier = Modifier
-                    .height(60.dp)
-                    .width(1.dp),
-                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.3f)
-            )
-            SummaryItem(
-                label = "Total Hours",
-                value = totalHours.toString()
-            )
-        }
-    }
-}
 
 @Composable
-private fun SummaryItem(label: String, value: String) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Text(
-            text = value,
-            style = MaterialTheme.typography.displaySmall,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
-        )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-        )
-    }
-}
-
-@Composable
-private fun FilterChipsRow(
-    selectedFilter: String,
-    onFilterSelected: (String) -> Unit
+private fun ScheduleSummaryCard(hours: Int, total: Int) = Card(
+    Modifier.fillMaxWidth(),
+    colors = CardDefaults.cardColors(MaterialTheme.colorScheme.primaryContainer)
 ) {
-    val filters = listOf("All", "Morning", "Afternoon", "Evening", "Night")
+    Row(Modifier.padding(20.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
+        SummaryItem("Total Shifts", total.toString())
+        SummaryItem("Total Hours", hours.toString())
+    }
+}
 
-    LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        items(filters) { filter ->
+@Composable
+private fun SummaryItem(label: String, value: String) = Column(
+    horizontalAlignment = Alignment.CenterHorizontally
+) {
+    Text(value, fontWeight = FontWeight.Bold, fontSize = MaterialTheme.typography.headlineSmall.fontSize)
+    Text(label, color = Color.Gray)
+}
+
+@Composable
+private fun FilterChipsRow(selected: String, onSelect: (String) -> Unit) {
+    val list = listOf("All", "Morning", "Afternoon", "Evening", "Night")
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        items(list) { f ->
             FilterChip(
-                selected = selectedFilter == filter,
-                onClick = { onFilterSelected(filter) },
-                label = { Text(filter) },
-                leadingIcon = if (selectedFilter == filter) {
-                    {
-                        Icon(
-                            imageVector = Icons.Default.Check,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-                } else null
+                selected = selected == f,
+                onClick = { onSelect(f) },
+                label = { Text(f) },
+                leadingIcon = if (selected == f) { { Icon(Icons.Default.Check, null) } } else null
             )
         }
     }
 }
 
 @Composable
-private fun SortToggle(
-    sortByHours: Boolean,
-    onToggle: () -> Unit
+private fun SortToggle(sortByHours: Boolean, onToggle: () -> Unit) = Row(
+    Modifier.fillMaxWidth(),
+    horizontalArrangement = Arrangement.SpaceBetween,
+    verticalAlignment = Alignment.CenterVertically
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.List,
-                contentDescription = "Sort",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(20.dp)
-            )
-            Text(
-                text = "Sort by: ${if (sortByHours) "Hours (High to Low)" else "Day of Week"}",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-        IconButton(onClick = onToggle) {
-            Icon(
-                imageVector = Icons.Default.Refresh,
-                contentDescription = "Toggle sort",
-                tint = MaterialTheme.colorScheme.primary
-            )
-        }
-    }
+    Text(if (sortByHours) "Sorting by Hours" else "Sorting by Day")
+    IconButton(onClick = onToggle) { Icon(Icons.Default.Refresh, null) }
 }
 
 @Composable
-private fun EmptyFilterState() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Icon(
-            imageVector = Icons.Default.Search,
-            contentDescription = "No results",
-            modifier = Modifier.size(64.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
-        )
-        Spacer(Modifier.height(12.dp))
-        Text(
-            text = "No schedules match this filter",
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
-@Composable
-private fun EnhancedScheduleCard(
-    schedule: Schedule,
-    onClick: () -> Unit
-) {
-    val shiftColors = getShiftColors(schedule.shift)
-    val shiftIcon = getShiftIcon(schedule.shift)
-
+private fun EnhancedScheduleCard(schedule: Schedule, hours: Int, onClick: () -> Unit) =
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
+        elevation = CardDefaults.cardElevation(3.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+
             Box(
-                modifier = Modifier
-                    .size(60.dp)
+                Modifier.size(55.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(
-                        Brush.verticalGradient(
-                            colors = shiftColors
-                        )
-                    ),
+                    .background(Brush.verticalGradient(getShiftColors(hours))),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = shiftIcon,
-                    contentDescription = schedule.shift,
-                    tint = Color.White,
-                    modifier = Modifier.size(32.dp)
-                )
+                Icon(Icons.Default.Schedule, null, tint = Color.White, modifier = Modifier.size(28.dp))
             }
 
-            Spacer(Modifier.width(16.dp))
+            Spacer(Modifier.width(14.dp))
 
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                Text(
-                    text = schedule.day,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+            Column(Modifier.weight(1f)) {
+                Text(schedule.day, fontWeight = FontWeight.Bold)
+                Text(schedule.shift)
+            }
 
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Shift: ${schedule.shift}",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-
-                    Surface(
-                        shape = RoundedCornerShape(12.dp),
-                        color = MaterialTheme.colorScheme.secondaryContainer
-                    ) {
-                        Text(
-                            text = "${schedule.hours}h",
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer,
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
-                        )
-                    }
-                }
+            Surface(shape = RoundedCornerShape(12.dp), color = Color(0xFFDDF5FF)) {
+                Text("$hours h", Modifier.padding(10.dp), fontWeight = FontWeight.Bold)
             }
         }
     }
+
+private fun getShiftColors(h: Int) = when (h) {
+    in 6..11 -> listOf(Color(0xFFFFB74D), Color(0xFFFF9800))
+    in 12..16 -> listOf(Color(0xFF64B5F6), Color(0xFF2196F3))
+    in 17..21 -> listOf(Color(0xFFBA68C8), Color(0xFF9C27B0))
+    else -> listOf(Color(0xFF4FC3F7), Color(0xFF0288D1))
 }
 
-@Composable
-private fun EmptyScheduleState() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Icon(
-            imageVector = Icons.Default.DateRange,
-            contentDescription = "No schedules",
-            modifier = Modifier.size(80.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
-        )
-        Spacer(Modifier.height(16.dp))
-        Text(
-            text = "No Schedules Yet",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(Modifier.height(8.dp))
-        Text(
-            text = "Your schedule will appear here once assigned",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-        )
-    }
-}
+private fun getDayOrder(day: String) = listOf(
+    "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"
+).indexOf(day.lowercase()).takeIf { it >= 0 } ?: 99
 
-private fun getShiftColors(shift: String): List<Color> {
-    return when (shift.lowercase()) {
-        "morning" -> listOf(Color(0xFFFFB74D), Color(0xFFFF9800))
-        "afternoon" -> listOf(Color(0xFF64B5F6), Color(0xFF2196F3))
-        "evening" -> listOf(Color(0xFFBA68C8), Color(0xFF9C27B0))
-        "night" -> listOf(Color(0xFF4FC3F7), Color(0xFF0288D1))
-        else -> listOf(Color(0xFF90A4AE), Color(0xFF607D8B))
-    }
-}
-
-private fun getShiftIcon(shift: String): ImageVector {
-    return Icons.Default.Star
-}
-
-private fun getDayOrder(day: String): Int {
-    return when (day.lowercase()) {
-        "monday" -> 1
-        "tuesday" -> 2
-        "wednesday" -> 3
-        "thursday" -> 4
-        "friday" -> 5
-        "saturday" -> 6
-        "sunday" -> 7
-        else -> 8
-    }
-}
+@Composable private fun EmptyScheduleState() = Text("No Schedules Yet", modifier = Modifier.fillMaxSize(), fontWeight = FontWeight.Bold)
+@Composable private fun EmptyFilterState() = Text("No schedules match this filter")
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun RequestDialog(
-    schedule: Schedule,
-    onDismiss: () -> Unit
-) {
-    var selectedRequestType by remember { mutableStateOf<String?>(null) }
-    var reason by remember { mutableStateOf("") }
-    var showConfirmation by remember { mutableStateOf(false) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.DateRange,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(28.dp)
-                )
-                Text(
-                    text = "Schedule Request",
-                    style = MaterialTheme.typography.headlineSmall
-                )
-            }
-        },
-        text = {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                // Schedule info
-                Card(
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer
-                    )
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text(
-                            text = "Selected Schedule",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
-                        )
-                        Text(
-                            text = "${schedule.day} - ${schedule.shift}",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer
-                        )
-                        Text(
-                            text = "${schedule.hours} hours",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer
-                        )
-                    }
-                }
-
-                HorizontalDivider()
-
-                // Request type selection
-                Text(
-                    text = "Request Type",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    FilterChip(
-                        selected = selectedRequestType == "Shift Swap",
-                        onClick = { selectedRequestType = "Shift Swap" },
-                        label = { Text("Shift Swap") },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Refresh,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
-                            )
-                        },
-                        modifier = Modifier.weight(1f)
-                    )
-                    FilterChip(
-                        selected = selectedRequestType == "Time Off",
-                        onClick = { selectedRequestType = "Time Off" },
-                        label = { Text("Time Off") },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
-                            )
-                        },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-
-                // Reason input
-                if (selectedRequestType != null) {
-                    OutlinedTextField(
-                        value = reason,
-                        onValueChange = { reason = it },
-                        label = { Text("Reason (Optional)") },
-                        placeholder = { Text("Enter your reason...") },
-                        modifier = Modifier.fillMaxWidth(),
-                        minLines = 3,
-                        maxLines = 5
-                    )
-                }
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    if (selectedRequestType != null) {
-                        showConfirmation = true
-                    }
-                },
-                enabled = selectedRequestType != null
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Send,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(Modifier.width(8.dp))
-                Text("Submit Request")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
-        }
-    )
-
-    // Confirmation snackbar
-    if (showConfirmation) {
-        LaunchedEffect(Unit) {
-            kotlinx.coroutines.delay(1500)
-            onDismiss()
-        }
-
-        AlertDialog(
-            onDismissRequest = onDismiss,
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.CheckCircle,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(48.dp)
-                )
-            },
-            title = { Text("Request Submitted!") },
-            text = {
-                Text("Your $selectedRequestType request for ${schedule.day} has been submitted to your manager for approval.")
-            },
-            confirmButton = {
-                TextButton(onClick = onDismiss) {
-                    Text("OK")
-                }
-            }
-        )
-    }
-}
+private fun RequestDialog(s: Schedule, onDismiss: () -> Unit) = AlertDialog(
+    onDismissRequest = onDismiss,
+    title = { Text("Request – ${s.day}") },
+    text = { Text(s.shift) },
+    confirmButton = { Button(onClick = onDismiss) { Text("OK") } }
+)

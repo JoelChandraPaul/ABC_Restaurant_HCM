@@ -23,52 +23,106 @@ fun AddScheduleScreen(
 
     var selected by remember { mutableStateOf("") }
     var day by remember { mutableStateOf("") }
-    var hours by remember { mutableStateOf("") }
-    var shiftLabel by remember { mutableStateOf("") }
 
-    var expanded by remember { mutableStateOf(false) }
+    var empExpanded by remember { mutableStateOf(false) }
+    var startExpanded by remember { mutableStateOf(false) }
+    var endExpanded by remember { mutableStateOf(false) }
 
-    Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+    var startHour by remember { mutableStateOf<Int?>(null) }
+    var endHour by remember { mutableStateOf<Int?>(null) }
 
-        Text("Add New Shift", style = MaterialTheme.typography.headlineMedium)
+    val shiftLabel =
+        if (startHour != null && endHour != null)
+            "${startHour.toString().padStart(2, '0')}:00 - ${endHour.toString().padStart(2, '0')}:00"
+        else ""
 
-        ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = true }) {
+    Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
 
+        Text("Create Schedule", style = MaterialTheme.typography.headlineMedium)
+
+        ExposedDropdownMenuBox(expanded = empExpanded, onExpandedChange = { empExpanded = true }) {
             OutlinedTextField(
                 value = selected,
-                onValueChange = {},
                 readOnly = true,
+                onValueChange = {},
                 label = { Text("Select Employee") },
-                modifier = Modifier.fillMaxWidth().menuAnchor().clickable { expanded = true }
+                modifier = Modifier.fillMaxWidth().menuAnchor().clickable { empExpanded = true }
             )
 
-            ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            ExposedDropdownMenu(expanded = empExpanded, onDismissRequest = { empExpanded = false }) {
                 employees.forEach { e ->
                     DropdownMenuItem(
                         text = { Text("${e.name} (${e.employeeId})") },
                         onClick = {
                             selected = e.employeeId
-                            expanded = false
+                            empExpanded = false
                         }
                     )
                 }
             }
         }
 
-        OutlinedTextField(day, { day = it }, label = { Text("Day (e.g. Monday)") }, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(
+            value = day,
+            onValueChange = { day = it },
+            label = { Text("Day (ex. Monday)") },
+            modifier = Modifier.fillMaxWidth()
+        )
 
-        OutlinedTextField(hours, { hours = it }, label = { Text("Hours Worked (e.g. 8)") }, modifier = Modifier.fillMaxWidth())
+        ExposedDropdownMenuBox(expanded = startExpanded, onExpandedChange = { startExpanded = true }) {
+            OutlinedTextField(
+                value = startHour?.toString() ?: "",
+                readOnly = true,
+                onValueChange = {},
+                label = { Text("Start Time (24hr)") },
+                modifier = Modifier.fillMaxWidth().menuAnchor().clickable { startExpanded = true }
+            )
 
-        OutlinedTextField(shiftLabel, { shiftLabel = it }, label = { Text("Shift Label (ex. 9am-5pm)") }, modifier = Modifier.fillMaxWidth())
+            ExposedDropdownMenu(expanded = startExpanded, onDismissRequest = { startExpanded = false }) {
+                (0..23).forEach { h ->
+                    DropdownMenuItem(
+                        text = { Text("${h}:00") },
+                        onClick = {
+                            startHour = h
+                            startExpanded = false
+                        }
+                    )
+                }
+            }
+        }
+
+        ExposedDropdownMenuBox(expanded = endExpanded, onExpandedChange = { endExpanded = true }) {
+            OutlinedTextField(
+                value = endHour?.toString() ?: "",
+                readOnly = true,
+                onValueChange = {},
+                label = { Text("End Time (24hr)") },
+                modifier = Modifier.fillMaxWidth().menuAnchor().clickable { endExpanded = true }
+            )
+
+            ExposedDropdownMenu(expanded = endExpanded, onDismissRequest = { endExpanded = false }) {
+                (0..23).forEach { h ->
+                    DropdownMenuItem(
+                        text = { Text("${h}:00") },
+                        onClick = {
+                            endHour = h
+                            endExpanded = false
+                        }
+                    )
+                }
+            }
+        }
 
         Button(
+            modifier = Modifier.fillMaxWidth(),
             onClick = {
-                if (selected.isNotEmpty() && hours.isNotEmpty() && day.isNotEmpty()) {
-                    vm.add(selected, day, hours.toInt(), shiftLabel)
+                if (selected.isNotEmpty() && startHour != null && endHour != null && day.isNotEmpty()) {
+                    vm.add(day, shiftLabel, selected)
                     nav.popBackStack()
                 }
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) { Text("Save Shift") }
+            }
+        ) {
+            Text("Save Schedule")
+        }
     }
 }

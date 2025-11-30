@@ -14,4 +14,8 @@ interface ScheduleDao {
 
     @Query("DELETE FROM Schedule WHERE id = :id")
     suspend fun delete(id: Int)
+
+    @Query("SELECT * FROM Schedule")
+    suspend fun getAllOnce(): List<Schedule>
+
 }

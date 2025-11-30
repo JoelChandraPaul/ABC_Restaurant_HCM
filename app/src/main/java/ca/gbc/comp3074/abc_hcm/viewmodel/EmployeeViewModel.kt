@@ -13,7 +13,19 @@ class EmployeeViewModel(app: Application) : AndroidViewModel(app) {
     private val db = AppDatabase.getDatabase(app)
     val employees = db.employeeDao().getAll().asLiveData()
 
-    fun addEmployee(id: String, name: String, pass: String, rate: Double) = viewModelScope.launch {
-        db.employeeDao().insert(Employee(id, name, pass, rate))
+    suspend fun addEmployee(id: String, name: String, pass: String, rate: Double): Boolean {
+        val exists = db.employeeDao().getOne(id)
+        return if (exists != null) false else {
+            db.employeeDao().insert(Employee(id, name, pass, rate))
+            true
+        }
+    }
+
+    fun deleteEmployee(id: String) = viewModelScope.launch {
+        db.employeeDao().delete(id)
+    }
+
+    fun updateEmployee(id: String, name: String, pass: String, rate: Double) = viewModelScope.launch {
+        db.employeeDao().update(id, name, pass, rate)
     }
 }

@@ -59,6 +59,9 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.6")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.8.6")
     implementation("com.kizitonwose.calendar:compose:2.3.0")
+    implementation("androidx.compose.material:material-icons-core:1.6.0")
+    implementation("androidx.compose.material:material-icons-extended:1.6.0")
+
 
     implementation("androidx.room:room-runtime:2.6.1")
     implementation(libs.androidx.compose.runtime.livedata)

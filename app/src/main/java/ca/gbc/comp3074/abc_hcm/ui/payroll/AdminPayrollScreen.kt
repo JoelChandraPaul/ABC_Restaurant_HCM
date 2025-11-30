@@ -6,8 +6,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import ca.gbc.comp3074.abc_hcm.viewmodel.PayrollViewModel
@@ -21,35 +25,55 @@ fun AdminPayrollScreen(nav: NavController, vm: PayrollViewModel = viewModel()) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(20.dp)
+            .padding(22.dp),
+        verticalArrangement = Arrangement.Top
     ) {
+        Text(
+            "Payroll Summary",
+            fontSize = 26.sp,
+            fontWeight = FontWeight.Bold
+        )
 
-        Text("Payroll Summary", style = MaterialTheme.typography.headlineMedium)
-        Spacer(Modifier.height(15.dp))
+        Spacer(Modifier.height(20.dp))
 
-        LazyColumn {
+        LazyColumn(Modifier.weight(1f)) {
             items(payroll) { p ->
                 Card(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 6.dp)
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFEFF6FF)),
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                    shape = MaterialTheme.shapes.large,
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
-                    Column(Modifier.padding(16.dp)) {
+                    Column(Modifier.padding(18.dp)) {
 
-                        Text("Employee: ${p.employeeName} (${p.employeeId})")
+                        Text("${p.employeeName}  •  ${p.employeeId}",
+                            fontWeight = FontWeight.Bold, fontSize = 18.sp)
+
+                        Spacer(Modifier.height(6.dp))
+
                         Text("Hours Worked: ${p.hoursWorked}")
                         Text("Hourly Rate: \$${p.hourlyRate}")
-                        Text("Total Pay: ${NumberFormat.getCurrencyInstance().format(p.totalPay)}")
+
+                        Spacer(Modifier.height(8.dp))
+                        Divider()
+
+                        Text(
+                            "Total Pay:  ${NumberFormat.getCurrencyInstance().format(p.totalPay)}",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                            color = Color(0xFF0077CC),
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
                     }
                 }
             }
         }
 
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(18.dp))
 
         Button(
-            onClick = { nav.popBackStack() },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            onClick = { nav.popBackStack() }
         ) { Text("Back") }
     }
 }

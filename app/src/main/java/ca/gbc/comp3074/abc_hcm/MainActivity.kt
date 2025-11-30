@@ -67,6 +67,10 @@ fun HCMApp() {
                 composable("employee_payroll/{id}") { back ->
                     EmployeePayrollScreen(nav, back.arguments!!.getString("id")!!)
                 }
+                composable("edit_employee/{id}") { backStackEntry ->
+                    EditEmployeeScreen(nav, backStackEntry.arguments?.getString("id")!!)
+                }
+
             }
         }
     }
