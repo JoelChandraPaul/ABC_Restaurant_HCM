@@ -40,9 +40,9 @@ fun EmployeeScheduleScreen(
         .filter { it.employee == employeeId }
 
     fun getHours(shift: String): Int {
-        val parts = shift.replace(" ", "").split("-")
-        val s = parts[0].take(2).toIntOrNull() ?: return 0
-        val e = parts.getOrNull(1)?.take(2)?.toIntOrNull() ?: return 0
+        val parts = shift.split("-").map { it.trim() }
+        val s = parts[0].substringBefore(":").toIntOrNull() ?: return 0
+        val e = parts.getOrNull(1)?.substringBefore(":")?.toIntOrNull() ?: return 0
         return if (e >= s) e - s else (24 - s) + e
     }
 
