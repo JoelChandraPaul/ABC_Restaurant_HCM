@@ -11,40 +11,29 @@ import androidx.navigation.NavController
 import ca.gbc.comp3074.abc_hcm.viewmodel.ScheduleViewModel
 
 @Composable
-fun AdminScheduleScreen(
-    nav: NavController,
-    vm: ScheduleViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
-) {
+fun AdminScheduleScreen(nav: NavController, vm: ScheduleViewModel = androidx.lifecycle.viewmodel.compose.viewModel()) {
+
     val schedules = vm.schedules.collectAsState(initial = emptyList()).value
 
-    Column(Modifier.fillMaxSize().padding(20.dp)) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(20.dp),
+        verticalArrangement = Arrangement.Top
+    ) {
+        Text("All Employee Schedules", style = MaterialTheme.typography.headlineSmall)
+        Spacer(Modifier.height(14.dp))
 
-        Text("All Employee Schedules", style = MaterialTheme.typography.headlineMedium)
-        Spacer(Modifier.height(12.dp))
-
-        // List UI
-        LazyColumn(
-            modifier = Modifier.weight(1f)
-        ) {
+        LazyColumn(Modifier.weight(1f)) {
             items(schedules) { s ->
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 6.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-                ) {
-                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-
-                        Text("Employee: ${s.employee}", style = MaterialTheme.typography.titleMedium)
+                Card(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+                    Column(Modifier.padding(14.dp)) {
+                        Text("Employee: ${s.employee}")
                         Text("Day: ${s.day}")
                         Text("Shift: ${s.shift}")
 
-                        Spacer(Modifier.height(8.dp))
-
-                        Button(
-                            onClick = { vm.delete(s.id) },
-                            modifier = Modifier.fillMaxWidth()
-                        ) { Text("Delete Shift") }
+                        Spacer(Modifier.height(10.dp))
+                        Button(onClick = { vm.delete(s.id) }) {
+                            Text("Delete Shift")
+                        }
                     }
                 }
             }
@@ -52,13 +41,16 @@ fun AdminScheduleScreen(
 
         Spacer(Modifier.height(12.dp))
 
-        // Buttons bottom
-        Button(onClick = { nav.popBackStack() }, modifier = Modifier.fillMaxWidth()) {
-            Text("Back")
-        }
-        Spacer(Modifier.height(8.dp))
-        Button(onClick = { nav.navigate("admin_add_schedule") }, modifier = Modifier.fillMaxWidth()) {
-            Text("Add New Shift")
-        }
+        Button(
+            onClick = { nav.navigate("admin_add_schedule") },
+            modifier = Modifier.fillMaxWidth()
+        ) { Text("Add New Shift") }
+
+        Spacer(Modifier.height(10.dp))
+
+        Button(
+            onClick = { nav.popBackStack() },
+            modifier = Modifier.fillMaxWidth()
+        ) { Text("Back") }
     }
 }

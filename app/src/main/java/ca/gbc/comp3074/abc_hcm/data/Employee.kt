@@ -7,5 +7,6 @@ import androidx.room.PrimaryKey
 data class Employee(
     @PrimaryKey val employeeId: String,
     val name: String,
-    val password: String
+    val password: String,
+    val hourlyRate: Double = 15.0
 )

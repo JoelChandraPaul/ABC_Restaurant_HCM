@@ -15,6 +15,7 @@ import ca.gbc.comp3074.abc_hcm.ui.admin.*
 import ca.gbc.comp3074.abc_hcm.ui.auth.*
 import ca.gbc.comp3074.abc_hcm.ui.calendar.*
 import ca.gbc.comp3074.abc_hcm.ui.employee.*
+import ca.gbc.comp3074.abc_hcm.ui.payroll.*
 import ca.gbc.comp3074.abc_hcm.ui.request.*
 import ca.gbc.comp3074.abc_hcm.ui.theme.HCMTheme
 
@@ -39,40 +40,32 @@ fun HCMApp() {
                 composable("admin_login") { AdminLoginScreen(nav) }
                 composable("employee_login") { EmployeeLoginScreen(nav) }
 
-                // ADMIN PAGES
+                // ADMIN
                 composable("admin_dashboard") { AdminDashboard(nav) }
                 composable("admin_add_employee") { AddEmployeeScreen(nav) }
                 composable("admin_employees") { EmployeeListScreen(nav) }
                 composable("admin_schedule") { AdminScheduleScreen(nav) }
-
-                // 🔥 Missing One Added NOW
                 composable("admin_add_schedule") { AddScheduleScreen(nav) }
-
                 composable("admin_requests") { AdminRequestScreen(nav) }
 
-                // EMPLOYEE PAGES
-                composable("employee_home/{id}",
-                    arguments = listOf(navArgument("id") { type = NavType.StringType })
-                ) { back ->
+                composable("admin_payroll") { AdminPayrollScreen(nav) }
+
+                // EMPLOYEE
+                composable("employee_home/{id}") { back ->
                     EmployeeDashboard(nav, back.arguments!!.getString("id")!!)
                 }
-
-                composable("employee_schedule/{id}",
-                    arguments = listOf(navArgument("id") { type = NavType.StringType })
-                ) { back ->
+                composable("employee_schedule/{id}") { back ->
                     EmployeeScheduleScreen(nav, back.arguments!!.getString("id")!!)
                 }
-
-                composable("employee_request_form/{id}",
-                    arguments = listOf(navArgument("id") { type = NavType.StringType })
-                ) { back ->
+                composable("employee_request_form/{id}") { back ->
                     EmployeeRequestScreen(nav, back.arguments!!.getString("id")!!)
                 }
-
-                composable("employee_request_list/{id}",
-                    arguments = listOf(navArgument("id") { type = NavType.StringType })
-                ) { back ->
+                composable("employee_request_list/{id}") { back ->
                     EmployeeRequestListScreen(nav, back.arguments!!.getString("id")!!)
+                }
+
+                composable("employee_payroll/{id}") { back ->
+                    EmployeePayrollScreen(nav, back.arguments!!.getString("id")!!)
                 }
             }
         }

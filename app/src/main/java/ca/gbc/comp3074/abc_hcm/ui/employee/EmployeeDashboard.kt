@@ -34,6 +34,10 @@ fun EmployeeDashboard(nav: NavHostController, id: String) {
             Text("My Requests")
         }
 
+        Button(onClick = { nav.navigate("employee_payroll/$id") }, modifier = Modifier.fillMaxWidth()) {   // 🔥 New
+            Text("My Payroll")
+        }
+
         Button(onClick = {
             nav.navigate("role_select") {
                 popUpTo("role_select") { inclusive = true }

@@ -13,7 +13,7 @@ class EmployeeViewModel(app: Application) : AndroidViewModel(app) {
     private val db = AppDatabase.getDatabase(app)
     val employees = db.employeeDao().getAll().asLiveData()
 
-    fun addEmployee(id: String, name: String, password: String) = viewModelScope.launch {
-        db.employeeDao().insert(Employee(id, name, password))
+    fun addEmployee(id: String, name: String, pass: String, rate: Double) = viewModelScope.launch {
+        db.employeeDao().insert(Employee(id, name, pass, rate))
     }
 }

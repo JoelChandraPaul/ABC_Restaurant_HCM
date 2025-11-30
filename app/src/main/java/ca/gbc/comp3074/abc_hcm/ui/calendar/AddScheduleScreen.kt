@@ -12,50 +12,42 @@ import androidx.navigation.NavHostController
 import ca.gbc.comp3074.abc_hcm.viewmodel.EmployeeViewModel
 import ca.gbc.comp3074.abc_hcm.viewmodel.ScheduleViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)   // <<< FIX HERE
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddScheduleScreen(
     nav: NavHostController,
-    vm: ScheduleViewModel = viewModel(),
-    empVM: EmployeeViewModel = viewModel()
+    empVM: EmployeeViewModel = viewModel(),
+    vm: ScheduleViewModel = viewModel()
 ) {
-    val employees by empVM.employees.observeAsState(emptyList())
+    val employees = empVM.employees.observeAsState(emptyList()).value
 
-    var selectedEmployee by remember { mutableStateOf("") }
-    var expanded by remember { mutableStateOf(false) }
+    var selected by remember { mutableStateOf("") }
     var day by remember { mutableStateOf("") }
-    var shift by remember { mutableStateOf("") }
+    var hours by remember { mutableStateOf("") }
+    var shiftLabel by remember { mutableStateOf("") }
 
-    Column(Modifier.fillMaxSize().padding(24.dp)) {
+    var expanded by remember { mutableStateOf(false) }
 
-        Text("Create Schedule", style = MaterialTheme.typography.headlineSmall)
-        Spacer(Modifier.height(20.dp))
+    Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
 
-        @OptIn(ExperimentalMaterial3Api::class)
-        ExposedDropdownMenuBox(
-            expanded = expanded,
-            onExpandedChange = { expanded = true }
-        ) {
+        Text("Add New Shift", style = MaterialTheme.typography.headlineMedium)
+
+        ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = true }) {
+
             OutlinedTextField(
-                value = selectedEmployee,
+                value = selected,
                 onValueChange = {},
                 readOnly = true,
                 label = { Text("Select Employee") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .menuAnchor()
-                    .clickable { expanded = true }   // <<< The fix
+                modifier = Modifier.fillMaxWidth().menuAnchor().clickable { expanded = true }
             )
 
-            ExposedDropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false }
-            ) {
-                employees.forEach { emp ->
+            ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                employees.forEach { e ->
                     DropdownMenuItem(
-                        text = { Text("${emp.name} (${emp.employeeId})") },
+                        text = { Text("${e.name} (${e.employeeId})") },
                         onClick = {
-                            selectedEmployee = emp.employeeId
+                            selected = e.employeeId
                             expanded = false
                         }
                     )
@@ -63,23 +55,20 @@ fun AddScheduleScreen(
             }
         }
 
-        Spacer(Modifier.height(14.dp))
-        OutlinedTextField(day, { day = it }, label = { Text("Day") }, modifier = Modifier.fillMaxWidth())
-        Spacer(Modifier.height(10.dp))
-        OutlinedTextField(shift, { shift = it }, label = { Text("Shift (e.g., 9AM - 5PM)") }, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(day, { day = it }, label = { Text("Day (e.g. Monday)") }, modifier = Modifier.fillMaxWidth())
 
-        Spacer(Modifier.height(20.dp))
+        OutlinedTextField(hours, { hours = it }, label = { Text("Hours Worked (e.g. 8)") }, modifier = Modifier.fillMaxWidth())
+
+        OutlinedTextField(shiftLabel, { shiftLabel = it }, label = { Text("Shift Label (ex. 9am-5pm)") }, modifier = Modifier.fillMaxWidth())
 
         Button(
             onClick = {
-                if (selectedEmployee.isNotEmpty() && day.isNotEmpty() && shift.isNotEmpty()) {
-                    vm.add(day, shift, selectedEmployee)
+                if (selected.isNotEmpty() && hours.isNotEmpty() && day.isNotEmpty()) {
+                    vm.add(selected, day, hours.toInt(), shiftLabel)
                     nav.popBackStack()
                 }
             },
             modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Save Schedule")
-        }
+        ) { Text("Save Shift") }
     }
 }

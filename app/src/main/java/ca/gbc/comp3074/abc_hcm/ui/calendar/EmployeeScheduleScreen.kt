@@ -16,30 +16,30 @@ fun EmployeeScheduleScreen(
     employeeId: String,
     vm: ScheduleViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
+
     val schedules = vm.schedules.collectAsState(initial = emptyList()).value
         .filter { it.employee == employeeId }
 
-    LazyColumn(Modifier.fillMaxSize().padding(16.dp)) {
+    Column(modifier = Modifier.fillMaxSize().padding(20.dp)) {
 
-        item {
-            Text("My Schedule", style = MaterialTheme.typography.headlineSmall)
-            Spacer(Modifier.height(14.dp))
-        }
+        Text("My Schedule", style = MaterialTheme.typography.headlineSmall)
+        Spacer(Modifier.height(14.dp))
 
-        items(schedules) { s ->
-            Card(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
-                Column(Modifier.padding(14.dp)) {
-                    Text("Day: ${s.day}")
-                    Text("Shift: ${s.shift}")
+        LazyColumn(Modifier.weight(1f)) {
+            items(schedules) { s ->
+                Card(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+                    Column(Modifier.padding(14.dp)) {
+                        Text("Day: ${s.day}")
+                        Text("Shift: ${s.shift}")
+                    }
                 }
             }
         }
 
-        item { Spacer(Modifier.height(18.dp)) }
-        item {
-            Button(onClick = { nav.popBackStack() }, Modifier.fillMaxWidth()) {
-                Text("Back")
-            }
+        Spacer(Modifier.height(16.dp))
+
+        Button(onClick = { nav.popBackStack() }, modifier = Modifier.fillMaxWidth()) {
+            Text("Back")
         }
     }
 }

@@ -17,4 +17,7 @@ interface EmployeeDao {
 
     @Query("SELECT * FROM Employee WHERE employeeId = :id AND password = :password LIMIT 1")
     suspend fun login(id: String, password: String): Employee?
+
+    @Query("SELECT * FROM Employee WHERE employeeId = :id LIMIT 1")
+    suspend fun getOne(id: String): Employee?
 }
