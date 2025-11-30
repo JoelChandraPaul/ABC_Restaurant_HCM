@@ -3,40 +3,36 @@ package ca.gbc.comp3074.abc_hcm.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import ca.gbc.comp3074.abc_hcm.data.AppDatabase
 import ca.gbc.comp3074.abc_hcm.data.Schedule
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+
 class ScheduleViewModel(app: Application) : AndroidViewModel(app) {
 
     private val dao = AppDatabase.getDatabase(app).scheduleDao()
-    private val payrollViewModel = PayrollViewModel(app)
+    private val payrollViewModel = PayrollViewModel(app)  // Reference PayrollViewModel
 
     val schedules = dao.getAll()
 
-    fun add(date: LocalDate, shift: String, employee: String) {
-        viewModelScope.launch {
-            dao.insert(Schedule(0, employee, date.toString(), shift))
-            payrollViewModel.calculatePayroll()
-        }
+    // Add shift
+    fun add(date: LocalDate, shift: String, employee: String) = viewModelScope.launch {
+        dao.insert(Schedule(0, employee, date.toString(), shift))
+        payrollViewModel.calculatePayroll()  // Recalculate payroll after adding a shift
     }
 
-    fun update(id: Int, date: String, shift: String, employee: String) {
-        viewModelScope.launch {
-            dao.update(id, date, shift, employee)
-            payrollViewModel.calculatePayroll()
-        }
+    // Update shift
+    fun update(id: Int, date: String, shift: String, employee: String) = viewModelScope.launch {
+        dao.update(id, date, shift, employee)
+        payrollViewModel.calculatePayroll()  // Recalculate payroll after updating a shift
     }
 
-    fun delete(id: Int) {
-        viewModelScope.launch {
-            dao.delete(id)
-            payrollViewModel.calculatePayroll()
-        }
+    // Delete shift
+    fun delete(id: Int) = viewModelScope.launch {
+        dao.delete(id)
+        payrollViewModel.calculatePayroll()  // Recalculate payroll after deleting a shift
     }
 
-    fun getByDate(date: LocalDate): Flow<List<Schedule>> =
-        dao.getByDate(date.toString())
+    // Get schedules for a specific date
+    fun getByDate(date: LocalDate) = dao.getByDate(date.toString())
 }

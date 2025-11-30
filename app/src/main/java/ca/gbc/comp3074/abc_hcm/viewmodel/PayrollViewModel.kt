@@ -24,10 +24,8 @@ class PayrollViewModel(app: Application) : AndroidViewModel(app) {
     private val _payroll = MutableLiveData<List<PayrollRecord>>()
     val payroll: LiveData<List<PayrollRecord>> get() = _payroll
 
-    private val defaultHourlyRate = 20.0
-
     init {
-        calculatePayroll()
+        calculatePayroll()  // Initialize payroll calculation
     }
 
     private fun hoursFromShift(label: String): Int {
@@ -40,23 +38,27 @@ class PayrollViewModel(app: Application) : AndroidViewModel(app) {
         return if (end >= start) end - start else (24 - start) + end
     }
 
+    // Calculate payroll for all employees
     fun calculatePayroll() = viewModelScope.launch(Dispatchers.IO) {
-        val employees = db.employeeDao().getAllOnce()
-        val schedules = db.scheduleDao().getAllOnce()
+        val employees = db.employeeDao().getAllOnce()  // Fetch all employees
+        val schedules = db.scheduleDao().getAllOnce()  // Fetch all schedules
 
         val result = employees.map { emp ->
             val mySchedules = schedules.filter { it.employee == emp.employeeId }
             val hours = mySchedules.sumOf { hoursFromShift(it.shift) }
 
+            // Fetch the hourly rate for each employee dynamically
+            val hourlyRate = emp.hourlyRate
+
             PayrollRecord(
                 employeeId = emp.employeeId,
                 employeeName = emp.name,
                 hoursWorked = hours,
-                hourlyRate = defaultHourlyRate,
-                totalPay = hours * defaultHourlyRate
+                hourlyRate = hourlyRate,  // Use the dynamic hourly rate
+                totalPay = hours * hourlyRate  // Calculate total pay
             )
         }
 
-        _payroll.postValue(result)
+        _payroll.postValue(result)  // Update LiveData with calculated payroll
     }
 }
