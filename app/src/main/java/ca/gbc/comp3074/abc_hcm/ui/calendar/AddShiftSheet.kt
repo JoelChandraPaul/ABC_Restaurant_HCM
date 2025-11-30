@@ -25,7 +25,7 @@ fun AddScheduleScreen(
 
     var selectedEmployee by remember { mutableStateOf("") }
     var dayPickerOpen by remember { mutableStateOf(false) }
-    var selectedDay by remember { mutableStateOf("") }
+    var selectedDate by remember { mutableStateOf<LocalDate?>(null) }
 
     var startExpanded by remember { mutableStateOf(false) }
     var endExpanded by remember { mutableStateOf(false) }
@@ -83,23 +83,61 @@ fun AddScheduleScreen(
             OutlinedButton(
                 onClick = { dayPickerOpen = true },
                 modifier = Modifier.fillMaxWidth()
-            ) { Text(if (selectedDay.isEmpty()) "Pick Day" else selectedDay) }
+            ) { Text(selectedDate?.toString() ?: "Pick Date (yyyy-MM-dd)") }
 
             if (dayPickerOpen) {
+                var dateInput by remember { mutableStateOf("") }
                 AlertDialog(
                     onDismissRequest = { dayPickerOpen = false },
-                    title = { Text("Select Day") },
+                    title = { Text("Select Date") },
                     text = {
                         Column {
-                            listOf("Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday").forEach {
-                                Text(it, modifier = Modifier.clickable {
-                                    selectedDay = it
-                                    dayPickerOpen = false
-                                }.padding(10.dp))
+                            Text("Enter date in format: yyyy-MM-dd")
+                            Spacer(Modifier.height(8.dp))
+                            TextField(
+                                value = dateInput,
+                                onValueChange = { dateInput = it },
+                                placeholder = { Text("2025-11-30") },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Spacer(Modifier.height(12.dp))
+                            Text("Quick Select:", fontWeight = FontWeight.Bold)
+                            Spacer(Modifier.height(4.dp))
+                            // Quick select buttons for the next 7 days
+                            (0..6).forEach { daysAhead ->
+                                val date = LocalDate.now().plusDays(daysAhead.toLong())
+                                Text(
+                                    text = "$date (${date.dayOfWeek})",
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            selectedDate = date
+                                            dayPickerOpen = false
+                                        }
+                                        .padding(8.dp)
+                                )
                             }
                         }
                     },
-                    confirmButton = {}
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                try {
+                                    selectedDate = LocalDate.parse(dateInput)
+                                    dayPickerOpen = false
+                                } catch (e: Exception) {
+                                    // Invalid date format, show error or do nothing
+                                }
+                            }
+                        ) {
+                            Text("Confirm")
+                        }
+                    },
+                    dismissButton = {
+                        Button(onClick = { dayPickerOpen = false }) {
+                            Text("Cancel")
+                        }
+                    }
                 )
             }
 
@@ -144,12 +182,13 @@ fun AddScheduleScreen(
             }
 
             Button(
-                enabled = selectedEmployee.isNotEmpty() && selectedDay.isNotEmpty() && startHour != null && endHour != null,
+                enabled = selectedEmployee.isNotEmpty() && selectedDate != null && startHour != null && endHour != null,
                 modifier = Modifier.fillMaxWidth().height(55.dp),
                 onClick = {
-                    val date = LocalDate.parse(selectedDay)  // Convert selectedDay to LocalDate
-                    vm.add(date, shiftLabel, selectedEmployee)
-                    nav.popBackStack()
+                    selectedDate?.let { date ->
+                        vm.add(date, shiftLabel, selectedEmployee)
+                        nav.popBackStack()
+                    }
                 }
             ) { Text("Save Shift") }
         }
