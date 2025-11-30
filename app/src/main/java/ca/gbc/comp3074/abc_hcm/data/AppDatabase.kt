@@ -5,10 +5,23 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [Request::class], version = 2, exportSchema = false)
+@Database(
+    entities = [
+        Employee::class,
+        Schedule::class,
+        Request::class,
+        User::class
+    ],
+    version = 10,
+    exportSchema = false
+)
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun requestDao(): RequestDao
+
+    abstract fun employeeDao(): EmployeeDao
     abstract fun scheduleDao(): ScheduleDao
+    abstract fun requestDao(): RequestDao
+    abstract fun userDao(): UserDao
+
     companion object {
         @Volatile
         private var INSTANCE: AppDatabase? = null

@@ -4,12 +4,12 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
-import androidx.room.Room
 import ca.gbc.comp3074.abc_hcm.data.AppDatabase
 import ca.gbc.comp3074.abc_hcm.data.Request
 import kotlinx.coroutines.launch
 
 class RequestViewModel(app: Application) : AndroidViewModel(app) {
+
     private val db = AppDatabase.getDatabase(app)
     val requests = db.requestDao().getAll().asLiveData()
 

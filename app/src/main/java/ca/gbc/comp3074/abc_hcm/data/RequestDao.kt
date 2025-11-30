@@ -1,10 +1,13 @@
 package ca.gbc.comp3074.abc_hcm.data
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface RequestDao {
+
     @Query("SELECT * FROM Request")
     fun getAll(): Flow<List<Request>>
 
