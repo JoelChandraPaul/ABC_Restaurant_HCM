@@ -18,16 +18,16 @@ import androidx.navigation.NavHostController
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ca.gbc.comp3074.abc_hcm.viewmodel.RequestViewModel
 import ca.gbc.comp3074.abc_hcm.data.Request
-import java.text.SimpleDateFormat
-import java.util.*
-import java.time.Instant
-import java.time.LocalDate
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
+import java.util.Calendar
+import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EmployeeRequestScreen(nav: NavHostController, employeeId: String, vm: RequestViewModel = viewModel()) {
+fun EmployeeRequestScreen(
+    nav: NavHostController,
+    employeeId: String,
+    vm: RequestViewModel = viewModel()
+) {
 
     var selectedType by remember { mutableStateOf("") }
     var selectedDate by remember { mutableStateOf("") }
@@ -85,7 +85,11 @@ fun EmployeeRequestScreen(nav: NavHostController, employeeId: String, vm: Reques
                         onValueChange = {},
                         readOnly = true,
                         label = { Text("Select leave type") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedTypeMenu) },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(
+                                expanded = expandedTypeMenu
+                            )
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .menuAnchor(),
@@ -178,13 +182,15 @@ fun EmployeeRequestScreen(nav: NavHostController, employeeId: String, vm: Reques
         // Submit Button
         Button(
             onClick = {
-                if(selectedType.isNotEmpty() && selectedDate.isNotEmpty() && reason.isNotEmpty()) {
-                    vm.addRequest(Request(
-                        employee = employeeId,
-                        type = selectedType,
-                        date = selectedDate,
-                        reason = reason
-                    ))
+                if (selectedType.isNotEmpty() && selectedDate.isNotEmpty() && reason.isNotEmpty()) {
+                    vm.addRequest(
+                        Request(
+                            employee = employeeId,
+                            type = selectedType,
+                            date = selectedDate,
+                            reason = reason
+                        )
+                    )
                     showSuccessDialog = true
                 }
             },
@@ -243,18 +249,20 @@ fun EmployeeRequestScreen(nav: NavHostController, employeeId: String, vm: Reques
                         val millis = datePickerState.selectedDateMillis
 
                         if (millis != null) {
-                            val calendar = Calendar.getInstance().apply {
+                            // Interpret millis in UTC so there is no local timezone shift
+                            val calendar = Calendar.getInstance(
+                                TimeZone.getTimeZone("UTC")
+                            ).apply {
                                 timeInMillis = millis
-                                set(Calendar.HOUR_OF_DAY, 12)
                             }
 
                             val year = calendar.get(Calendar.YEAR)
-                            val month = calendar.get(Calendar.MONTH) + 1
+                            val month = calendar.get(Calendar.MONTH) + 1 // 0-based
                             val day = calendar.get(Calendar.DAY_OF_MONTH)
 
-                            selectedDate = String.format("%04d-%02d-%02d", year, month, day)
+                            selectedDate =
+                                String.format("%04d-%02d-%02d", year, month, day)
                         }
-
 
                         showDatePicker = false
                     }

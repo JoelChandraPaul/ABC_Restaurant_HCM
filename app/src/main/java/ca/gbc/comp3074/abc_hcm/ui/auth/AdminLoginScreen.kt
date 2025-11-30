@@ -2,13 +2,16 @@ package ca.gbc.comp3074.abc_hcm.ui.auth
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -23,6 +26,7 @@ fun AdminLoginScreen(nav: NavHostController, vm: AuthViewModel = viewModel()) {
     var id by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val ctx = LocalContext.current
+    val focus = LocalFocusManager.current
 
     Column(
         modifier = Modifier
@@ -32,19 +36,25 @@ fun AdminLoginScreen(nav: NavHostController, vm: AuthViewModel = viewModel()) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        Text("Manager Login", fontSize = 24.sp, fontWeight = FontWeight.Bold)
-        Spacer(Modifier.height(18.dp))
+        Text("Manager Login", fontSize = 26.sp, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.height(22.dp))
 
         OutlinedTextField(
             value = id,
             onValueChange = { id = it },
             label = { Text("Manager ID") },
             singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Text,
+                imeAction = ImeAction.Next
+            ),
+            keyboardActions = KeyboardActions(
+                onNext = { focus.moveFocus(androidx.compose.ui.focus.FocusDirection.Down) }
+            ),
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(14.dp))
 
         OutlinedTextField(
             value = password,
@@ -52,11 +62,15 @@ fun AdminLoginScreen(nav: NavHostController, vm: AuthViewModel = viewModel()) {
             label = { Text("Password") },
             singleLine = true,
             visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Password,
+                imeAction = ImeAction.Done
+            ),
+            keyboardActions = KeyboardActions(onDone = { focus.clearFocus() }),
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(Modifier.height(22.dp))
+        Spacer(Modifier.height(26.dp))
 
         Button(
             onClick = {
@@ -66,8 +80,6 @@ fun AdminLoginScreen(nav: NavHostController, vm: AuthViewModel = viewModel()) {
                 }
             },
             modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Login")
-        }
+        ) { Text("Login", fontSize = 18.sp) }
     }
 }

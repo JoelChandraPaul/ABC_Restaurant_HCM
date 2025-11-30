@@ -48,8 +48,8 @@ fun AdminDashboard(nav: NavHostController) {
                 DashboardOption("View Employees", Icons.Default.Group) {
                     nav.navigate("admin_employees")
                 }
-                DashboardOption("View Schedule", Icons.Default.CalendarMonth) {
-                    nav.navigate("admin_schedule")
+                DashboardOption("Manage Schedule", Icons.Default.CalendarMonth) {
+                    nav.navigate("admin_calendar")
                 }
                 DashboardOption("Manage Requests", Icons.Default.Notifications) {
                     nav.navigate("admin_requests")

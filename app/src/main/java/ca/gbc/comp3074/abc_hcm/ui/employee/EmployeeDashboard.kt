@@ -1,47 +1,118 @@
 package ca.gbc.comp3074.abc_hcm.ui.employee
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EmployeeDashboard(nav: NavHostController, id: String) {
 
-    Column(
-        modifier = Modifier.fillMaxSize().padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text("Employee Dashboard", fontSize = 22.sp, fontWeight = FontWeight.Bold) },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                )
+            )
+        }
+    ) { pad ->
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(pad)
+                .padding(22.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+
+            Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
+
+                DashboardOption("View My Schedule", Icons.Default.CalendarMonth) {
+                    nav.navigate("employee_schedule/$id")
+                }
+
+                DashboardOption("Submit Leave Request", Icons.Default.EditCalendar) {
+                    nav.navigate("employee_request_form/$id")
+                }
+
+                DashboardOption("My Requests", Icons.Default.ListAlt) {
+                    nav.navigate("employee_request_list/$id")
+                }
+
+                DashboardOption("My Payroll", Icons.Default.Payments) {
+                    nav.navigate("employee_payroll/$id")
+                }
+            }
+
+            //================== LOGOUT ==================//
+            Button(
+                onClick = {
+                    nav.navigate("role_select") {
+                        popUpTo("role_select") { inclusive = true }
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(55.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F))
+            ) {
+                Icon(Icons.Default.ExitToApp, contentDescription = null, tint = Color.White)
+                Spacer(Modifier.width(10.dp))
+                Text("Logout", color = Color.White, fontSize = 17.sp)
+            }
+        }
+    }
+}
+
+@Composable
+fun DashboardOption(text: String, icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit) {
+
+    Card(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF0A74DA)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
     ) {
 
-        Text("Welcome, $id", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(18.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
 
-        Button(onClick = { nav.navigate("employee_schedule/$id") }, modifier = Modifier.fillMaxWidth()) {
-            Text("View My Schedule")
-        }
-
-        Button(onClick = { nav.navigate("employee_request_form/$id") }, modifier = Modifier.fillMaxWidth()) {
-            Text("Submit Leave Request")
-        }
-
-        Button(onClick = { nav.navigate("employee_request_list/$id") }, modifier = Modifier.fillMaxWidth()) {
-            Text("My Requests")
-        }
-
-        Button(onClick = { nav.navigate("employee_payroll/$id") }, modifier = Modifier.fillMaxWidth()) {   // 🔥 New
-            Text("My Payroll")
-        }
-
-        Button(onClick = {
-            nav.navigate("role_select") {
-                popUpTo("role_select") { inclusive = true }
+            Box(
+                modifier = Modifier
+                    .size(42.dp)
+                    .background(Color.White.copy(alpha = 0.15f), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(24.dp))
             }
-        }, modifier = Modifier.fillMaxWidth()) { Text("Logout") }
+
+            Text(
+                text,
+                color = Color.White,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
     }
 }
